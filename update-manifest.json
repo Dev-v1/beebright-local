@@ -1,5 +1,6 @@
 {
-  "version": "753ea8529480f7496f5a8b8b4275a977689cf0a5",
-  "sha256": "2deaab4f794514d8b9d2e40d3fe3f458493d60a38380dc33c415434540ce9da5",
-  "url": "https://github.com/Dev-v1/beebright-local/releases/download/desktop-753ea8529480/beebright-local-source.zip"
+  "version": "8393a18b67c8359b3666519a6d16cd168655387d",
+  "release": "2.7 (fixed)",
+  "sha256": "77cc6c0bd82d9c644ce06964ebedd4978fe13677a7be8f47d946afc96849a622",
+  "url": "https://github.com/Dev-v1/beebright-local/releases/download/desktop-8393a18b67c8/beebright-local-source.zip"
 }
