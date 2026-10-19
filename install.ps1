@@ -93,12 +93,7 @@ if (-not $WebViewFound) {
 }
 & "$Runtime\python.exe" -m pip install --disable-pip-version-check 'pywebview==6.2.1' 'pythonnet==3.2.0'
 if ($LASTEXITCODE) { throw 'BeeBright desktop dependencies could not be installed.' }
-try {
-    Invoke-WebRequest 'https://beebright.vercel.app/local/bootstrap.ps1' -OutFile "$BeeRoot\bootstrap.ps1" -UseBasicParsing
-    if ((Get-Content "$BeeRoot\bootstrap.ps1" -Raw) -notmatch 'BeeBrightUpdater') { throw 'Website launcher is not available yet.' }
-} catch {
-    Invoke-WebRequest 'https://raw.githubusercontent.com/Dev-v1/beebright-local/main/bootstrap.ps1' -OutFile "$BeeRoot\bootstrap.ps1" -UseBasicParsing
-}
+Invoke-WebRequest 'https://raw.githubusercontent.com/Dev-v1/beebright-local/main/bootstrap.ps1' -OutFile "$BeeRoot\bootstrap.ps1" -UseBasicParsing
 $Command = '@echo off' + "`r`n" + 'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%LOCALAPPDATA%\BeeBright\bootstrap.ps1" %*' + "`r`n"
 Set-Content -Path "$Bin\beebright.cmd" -Value $Command -Encoding Ascii
 $UserPath = [string][Environment]::GetEnvironmentVariable('Path', 'User')

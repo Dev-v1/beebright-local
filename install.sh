@@ -17,7 +17,7 @@ export UV_NO_MODIFY_PATH=1
 "$BeeRoot/tools/uv" python install 3.15
 BeePython=$("$BeeRoot/tools/uv" python find --managed-python 3.15)
 "$BeePython" -c 'import sys; assert sys.version_info[:2] == (3,15)'
-curl -fsSL https://beebright.vercel.app/local/bootstrap.py -o "$BeeRoot/bootstrap.py.new" || curl -fsSL https://raw.githubusercontent.com/Dev-v1/beebright-local/main/bootstrap.py -o "$BeeRoot/bootstrap.py.new"
+curl -fsSL https://raw.githubusercontent.com/Dev-v1/beebright-local/main/bootstrap.py -o "$BeeRoot/bootstrap.py.new"
 mv "$BeeRoot/bootstrap.py.new" "$BeeRoot/bootstrap.py"
 # Python writes the shell launcher using shell quoting for paths with spaces.
 "$BeePython" - "$BeePython" "$BeeRoot" "$BeeBin" <<'PY'

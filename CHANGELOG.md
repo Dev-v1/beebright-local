@@ -1,4 +1,21 @@
-# BeeBright 2.6 fixed
+# BeeBright Local 2.7 (fixed)
+
+- Local source, tracks, build and releases are owned by beebright-local. Website synchronization has been removed.
+- Updates and runtime repairs download only from beebright-local; older installations can migrate by rerunning its installer once.
+- Each main-branch update publishes a tested local ZIP and checksum manifest.
+
+- Two Northern Lights tracks: Aurora Fjord and Polar Night Pass, with moving green and violet aurora curtains, stars and frozen scenery.
+- All eight added tracks have their own scenery and color palette: palms, red mesas and cacti, autumn trees, pastel houses, snowy peaks, cargo docks, and two different polar nights.
+- Slightly narrower roads make the new tracks a little harder. The original four tracks keep their layouts and scenery.
+- All twelve tracks and their artwork are bundled in the offline BeeBright Local release.
+
+## 2.7
+
+- Six new Neon Rally circuits: Coastal Sprint, Red Mesa Run, Pine Ridge, Old Town Loop, Summit Grand Prix, and Sunset Docks.
+- Ten selectable tracks, with 1-10 laps, chase and cockpit cameras, and Lightweight or High quality graphics.
+- Terrain expands to cover the larger circuits and their trackside scenery.
+
+## 2.6 fixed
 
 - Faster racing opponents with smooth committed overtaking.
 - Compact exterior windshield and a wider cockpit view.
@@ -113,3 +130,4 @@
 ## 1.8
 
 - Private Python 3.15 runtime, offline help, and one-command uninstall.
+

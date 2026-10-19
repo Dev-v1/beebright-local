@@ -1,0 +1,11 @@
+**/node_modules/
+**/__pycache__/
+**/*.pyc
+**/.pytest_cache/
+ui-source/dist-local/
+beebright_local/ui/assets/
+beebright_local/ui/local.html
+beebright_local/ui/CHANGELOG.md
+version.json
+dist/
+test-output/

@@ -4,9 +4,8 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "node ../../../tools/build-local.mjs && vite build",
-    "preview": "vite preview"
+    "build": "vite build --mode desktop",
+    "test": "node --test src/*.test.js"
   },
   "engines": {
     "node": ">=22.12.0"

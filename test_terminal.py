@@ -77,7 +77,7 @@ class TerminalTests(unittest.TestCase):
                 z.writestr('beebright_local/web.py', '# bundled server')
                 z.writestr('bootstrap.py', '# new launcher')
             archive = stream.getvalue()
-            manifest = {'version': version, 'sha256': hashlib.sha256(archive).hexdigest(), 'url': 'https://beebright.vercel.app/local/beebright-local.zip'}
+            manifest = {'version': version, 'sha256': hashlib.sha256(archive).hexdigest(), 'url': 'https://github.com/Dev-v1/beebright-local/releases/download/desktop-' + version[:12] + '/beebright-local-source.zip'}
             def download(url):
                 return archive if url.endswith('.zip') else json.dumps(manifest).encode()
             with patch.object(bootstrap, 'ROOT', root), patch.object(bootstrap, 'CURRENT', current), patch.object(bootstrap, 'download', side_effect=download):
@@ -88,6 +88,18 @@ class TerminalTests(unittest.TestCase):
                 with self.assertRaisesRegex(RuntimeError, 'checksum'):
                     bootstrap.update()
                 self.assertEqual(json.loads((current / 'version.json').read_text())['version'], version)
+
+    def test_updates_only_use_the_local_repository(self):
+        self.assertTrue(all('Dev-v1/beebright-local/' in url for url in bootstrap.MANIFESTS))
+        self.assertFalse(any('vercel.app' in url for url in bootstrap.MANIFESTS))
+        bad_urls = ['https://beebright.vercel.app/local/beebright-local.zip',
+                    'https://github.com/another/repo/releases/download/desktop-aaaaaaaaaaaa/beebright-local-source.zip']
+        for url in bad_urls:
+            manifest = {'version': 'a' * 40, 'sha256': 'b' * 64, 'url': url}
+            with patch.object(bootstrap, 'download', return_value=json.dumps(manifest).encode()) as download:
+                with self.assertRaisesRegex(RuntimeError, 'Invalid update manifest'):
+                    bootstrap.update()
+                self.assertEqual(download.call_count, 1, 'Untrusted archive must never be downloaded')
 
     def test_same_revision_repairs_incomplete_installation(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -100,7 +112,7 @@ class TerminalTests(unittest.TestCase):
                 package.writestr('beebright_local/web.py', '# server')
                 package.writestr('bootstrap.py', '# launcher')
             archive = stream.getvalue()
-            manifest = {'version': version, 'sha256': hashlib.sha256(archive).hexdigest(), 'url': 'https://beebright.vercel.app/local/beebright-local.zip'}
+            manifest = {'version': version, 'sha256': hashlib.sha256(archive).hexdigest(), 'url': 'https://github.com/Dev-v1/beebright-local/releases/download/desktop-' + version[:12] + '/beebright-local-source.zip'}
             with patch.object(bootstrap, 'ROOT', root), patch.object(bootstrap, 'CURRENT', current), patch.object(bootstrap, 'download', side_effect=lambda url: archive if url.endswith('.zip') else json.dumps(manifest).encode()):
                 bootstrap.update()
             self.assertTrue((current / 'beebright_local/web.py').is_file())

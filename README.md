@@ -1,13 +1,13 @@
 # BeeBright Local
 
-A native desktop spelling practice app using the website’s exact React components, CSS, icons, and bundled fonts. No account, admin panel, or cloud progress database. Practice connects only to a server on this computer. Includes Flash Cards, Fill in the Blank, Multiple Choice, and Type the Word, with definitions, word origins, and sentences that hide the target spelling. Speech uses a voice installed on your computer.
+A native desktop spelling practice app maintained, built and released entirely in this repository. No account, admin panel, or cloud progress database. Practice connects only to a server on this computer. Includes Flash Cards, Fill in the Blank, Multiple Choice, and Type the Word, with definitions, word origins, and sentences that hide the target spelling. Speech uses a voice installed on your computer.
 
 ## Windows install
 
 In PowerShell:
 
 ```powershell
-irm https://beebright.vercel.app/install.ps1 | iex
+irm https://raw.githubusercontent.com/Dev-v1/beebright-local/main/install.ps1 | iex
 ```
 
 If the website installer has not been deployed yet, the standalone repository also serves it:
@@ -35,7 +35,7 @@ It checks the latest verified package and preserves your local progress. An expl
 ## macOS and Linux install
 
 ```sh
-curl -fsSL https://beebright.vercel.app/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/Dev-v1/beebright-local/main/install.sh | sh
 ```
 
 The installer downloads Astral uv from its official source and installs a private Python 3.15 runtime, requiring no administrator access. It adds `~/.local/bin` to your bash or zsh profile. Open a new terminal and type `beebright`, or immediately use `~/.local/bin/beebright`. The same UI opens in your default browser; keep the terminal open and use Ctrl+C to stop. No pywebview, login or cloud storage is needed. Install `espeak` or `espeak-ng` for Linux offline speech. macOS uses its built-in `say` voice.
@@ -71,11 +71,29 @@ python -m beebright_local
 
 On macOS, speech uses `say`; on Linux, install a pywebview GTK/Qt renderer and `espeak`. The terminal installer and verified updates support macOS and Linux too; their default UI opens in the browser.
 
-## How website fixes reach the local edition
+## Local source and releases
 
-The website repository `Dev-v1/beebright` is the canonical source. Its `local/` directory contains this app. Every website build regenerates the desktop bundle using the same React practice components, styling, fonts, hint-masking code, distractor generator, word lists, and hint data as that website commit. A desktop-only entry point removes cloud controls and connects to a Python bridge that saves progress locally. Rebuild the included UI sources with `cd ui-source`, `npm ci`, and `npx vite build --mode desktop`, then copy `dist-local/` into `beebright_local/ui/`. The installed launcher checks this bundle on every launch, falling back to the standalone GitHub release manifest when the website endpoint is unavailable.
+`Dev-v1/beebright-local` is the authoritative source for this app. UI, tracks, Python code, offline data, installers and updates are maintained here. Website code is never imported or synchronized.
 
-This repository's sync workflow checks the canonical main branch hourly, copies the desktop package here, runs the local tests, and publishes a new source ZIP release when the upstream commit changes. Desktop-specific fixes belong in canonical `local/`. Website authentication and administration changes are intentionally outside the desktop feature set.
+Build from this repository with `npm ci --prefix ui-source`, then `node tools/build-release.mjs`. This creates `dist/beebright-local-source.zip` and `dist/update-manifest.json`, using this repository's commit SHA. Run `node --test ui-source/src/*.test.js` and `python -m unittest discover -v`.
+
+Every update to main runs the local tests and builds a new GitHub Release with the ZIP and its SHA-256 manifest. `beebright update` checks that release and installs its verified ZIP while preserving local players, progress and settings. It does not install a website build.
+
+### Move an older installation to local-repository updates
+
+Older launchers checked the website first. Run the local installer once to replace that launcher without deleting progress:
+
+```powershell
+irm https://raw.githubusercontent.com/Dev-v1/beebright-local/main/install.ps1 | iex
+```
+
+On macOS or Linux:
+
+```sh
+curl -fsSL https://raw.githubusercontent.com/Dev-v1/beebright-local/main/install.sh | sh
+```
+
+After this one-time migration, use `beebright update` normally.
 
 ## License
 
@@ -141,6 +159,23 @@ The website has Sky Hopper, Sheep Escape, Gravity Flip, Pocket Bowling (five fra
 
 Three.js is MIT licensed; its license is included in the source ZIP. The two 3D games require WebGL 2. If unavailable, the six local 2D games still work. Graphics use low-poly meshes, no shadows, a 1.5x pixel-density cap and release GPU resources when leaving a game. The 3D engine loads only on demand. All original art and music are generated locally; there are no third-party music downloads.
 
+## Racing tracks (2.7 fixed)
+
+Neon Rally has twelve tracks. Choose a track and 1-10 laps on its game card before pressing Play. The original Harbor Circuit, Canyon Switchback, Alpine Hairpins and Midnight Metro are joined by:
+
+| Track | Layout |
+|---|---|
+| Coastal Sprint | Sandy coast, palms, sweeping turns and long straights |
+| Red Mesa Run | Terracotta mesas, cacti and alternating canyon bends |
+| Pine Ridge | Autumn trees, golden verges and flowing ridge turns |
+| Old Town Loop | Pastel houses, tiled roofs and tighter city corners |
+| Summit Grand Prix | Blue snowfields and a 70-metre mountain climb |
+| Sunset Docks | Warm sunset, cargo containers and dock cranes |
+| Aurora Fjord | Green and violet Northern Lights above snowy forest climbs |
+| Polar Night Pass | Purple polar sky, ice crystals and mountain bends |
+
+All tracks support both graphics settings, four AI opponents and the cockpit/chase camera shortcut (R). The eight additions use slightly narrower 18-20 metre roads for a modest difficulty increase. Their scenery, stars and animated Northern Lights are generated locally and work offline.
+
 ## Uninstall
 
 Close BeeBright and stop local browser practice with Ctrl+C, then run:
@@ -150,3 +185,4 @@ beebright uninstall
 ```
 
 This removes BeeBright, its private runtimes, terminal launcher, local saved progress and settings. Other Python installations, shared WebView2 and website account/progress remain. Back up your BeeBright `userdata` folder first if you want to retain progress. On Windows it is `%LOCALAPPDATA%\BeeBright\userdata`; on macOS/Linux it is `~/.local/share/BeeBright/userdata`.
+

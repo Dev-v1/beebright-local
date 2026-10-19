@@ -16,7 +16,7 @@ import zipfile
 
 ROOT = Path(__file__).resolve().parent
 CURRENT = ROOT / 'current'
-MANIFESTS = ('https://beebright.vercel.app/local/manifest.json',
+MANIFESTS = ('https://github.com/Dev-v1/beebright-local/releases/latest/download/update-manifest.json',
              'https://raw.githubusercontent.com/Dev-v1/beebright-local/main/update-manifest.json')
 
 
@@ -37,8 +37,7 @@ def update():
         raise RuntimeError('Could not check updates. Connect to the internet and try again.')
     version, digest, url = (manifest.get(k, '') for k in ('version', 'sha256', 'url'))
     if (not re.fullmatch('[a-f0-9]{40}', version) or not re.fullmatch('[a-f0-9]{64}', digest)
-        or not (url == 'https://beebright.vercel.app/local/beebright-local.zip'
-                or re.fullmatch(r'https://github\.com/Dev-v1/beebright-local/releases/download/desktop-[a-f0-9]{12}/beebright-local-source\.zip', url))):
+        or not (re.fullmatch(r'https://github\.com/Dev-v1/beebright-local/releases/download/desktop-[a-f0-9]{12}/beebright-local-source\.zip', url))):
         raise RuntimeError('Invalid update manifest.')
     if all((CURRENT / name).is_file() for name in ('version.json', 'beebright_local/web.py', 'beebright_local/app.py', 'beebright_local/ui/local.html', 'bootstrap.py', 'release.json')) and json.loads((CURRENT / 'version.json').read_text()).get('version') == version:
         print('BeeBright is already up to date.')

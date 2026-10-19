@@ -99,12 +99,12 @@ try {
     if (-not $Locked) { throw 'Another BeeBright update is in progress.' }
     try {
         try {
-            $Manifest = Invoke-RestMethod 'https://beebright.vercel.app/local/manifest.json' -TimeoutSec 8
-            if (-not $Manifest.version) { throw 'Website update is not available yet.' }
+            $Manifest = Invoke-RestMethod 'https://github.com/Dev-v1/beebright-local/releases/latest/download/update-manifest.json' -TimeoutSec 8
+            if (-not $Manifest.version) { throw 'Local release manifest is not available yet.' }
         } catch {
             $Manifest = Invoke-RestMethod 'https://raw.githubusercontent.com/Dev-v1/beebright-local/main/update-manifest.json' -TimeoutSec 8
         }
-        if ($Manifest.version -notmatch '^[a-f0-9]{40}$' -or $Manifest.sha256 -notmatch '^[a-f0-9]{64}$' -or ($Manifest.url -ne 'https://beebright.vercel.app/local/beebright-local.zip' -and $Manifest.url -notmatch '^https://github\.com/Dev-v1/beebright-local/releases/download/desktop-[a-f0-9]{12}/beebright-local-source\.zip$')) {
+        if ($Manifest.version -notmatch '^[a-f0-9]{40}$' -or $Manifest.sha256 -notmatch '^[a-f0-9]{64}$' -or ($Manifest.url -notmatch '^https://github\.com/Dev-v1/beebright-local/releases/download/desktop-[a-f0-9]{12}/beebright-local-source\.zip$')) {
             throw 'Invalid BeeBright update manifest.'
         }
         $Installed = ''
@@ -160,7 +160,7 @@ Set-Content -Path "$Bin\beebright.cmd" -Value $Launcher -Encoding Ascii
 $Python = Join-Path $BeeRoot 'runtime-3.15\pythonw.exe'
 if (-not (Test-Path $Python)) {
     Write-Host 'BeeBright now uses Python 3.15. Installing the updated runtime...'
-    Invoke-WebRequest 'https://beebright.vercel.app/install.ps1' -OutFile "$BeeRoot\install-new.ps1" -UseBasicParsing
+    Invoke-WebRequest 'https://raw.githubusercontent.com/Dev-v1/beebright-local/main/install.ps1' -OutFile "$BeeRoot\install-new.ps1" -UseBasicParsing
     & "$BeeRoot\install-new.ps1" -SkipLaunch
     if (-not (Test-Path $Python)) { throw 'Python 3.15 installation failed. Run the install command again.' }
 }
