@@ -1,4 +1,12 @@
-# BeeBright Local 2.7 (fixed)
+# BeeBright Local 2.7.1
+
+- All twelve tracks, including Aurora Fjord and Polar Night Pass, are available in normal practice Break Time.
+- Continuous ground follows the inclines on every track. Trackside scenery is planted in the rendered terrain instead of floating at the road height.
+- Ground stays visible and keeps its terrain colors in software graphics, including directly in front of the car.
+- Release checks now play all twelve tracks through a normal earned practice break.
+- Keep the original beebright.vercel.app install command; updates install published beebright-local releases.
+
+## 2.7 (fixed)
 
 - Local source, tracks, build and releases are owned by beebright-local. Website synchronization has been removed.
 - Updates and runtime repairs download only from beebright-local; older installations can migrate by rerunning its installer once.

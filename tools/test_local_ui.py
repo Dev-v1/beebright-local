@@ -145,7 +145,7 @@ def test(w):
             assert w.evaluate_js("document.querySelector('.arcade-player-bar').innerText.includes("+repr(track_name)+")")
             assert w.evaluate_js("/Place [1-5]\\/5/.test(document.querySelector('.arcade-player-bar').innerText) && document.querySelector('.arcade-player-bar').innerText.includes('Hill')")
             assert w.evaluate_js("document.querySelector('.arcade-player-bar').innerText.includes('Chase')")
-            assert w.evaluate_js("document.querySelector('.arcade-player-bar').innerText.includes('Lap 1/"+str(track+1)+"')")
+            assert w.evaluate_js("document.querySelector('.arcade-player-bar').innerText.includes('Lap 1/"+str(track%10+1)+"')")
             print('Rally renderer:',w.evaluate_js("document.querySelector('.game-graphics').innerText"))
             capture(w,f'track-{track}-chase')
             w.evaluate_js("window.dispatchEvent(new KeyboardEvent('keydown',{key:'r'}))")

@@ -27,12 +27,14 @@ export function auroraCurtain(radius,phase,segments=80){
  const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geometry.setAttribute('color',new THREE.Float32BufferAttribute(colors,3));geometry.setIndex(indices);geometry.computeVertexNormals();return geometry;
 }
 
-export function addRallyScenery({course,road,high,scene,mesh,mat,sample}){
+export function addRallyScenery({course,road,high,scene,mesh,mat,sample,groundHeight}){
  const style=rallyEnvironment(course),curtains=[];if(!style)return ()=>{};
  const leaf=mat(style.props==='autumn'?'#d88336':'#35866d'),trunk=mat('#79604e'),stone=mat(style.ground),ice=mat('#a2e4f0'),wood=mat('#997258');
- const count=high?54:26;
+ const count=high?54:26,makeMesh=mesh;
  for(let i=0;i<count;i++){
   const f=sample(road,i/count*road.length,(i%2?1:-1)*(road.width/2+17+i%3*7)),x=f.x,y=f.y-.6,z=f.z;
+  const group=new THREE.Group();group.name='trackside-scenery-'+i;scene.add(group);
+  const mesh=(g,m,x=0,y=0,z=0)=>makeMesh(g,m,x,y,z,group);
   if(style.props==='palms'){
    const stem=mesh(new THREE.CylinderGeometry(.25,.48,8,6),trunk,x,y+4,z);stem.rotation.z=.12;
    for(let j=0;j<5;j++){const a=j*Math.PI*2/5,frond=mesh(new THREE.ConeGeometry(1.1,6,4),leaf,x+Math.cos(a)*2,y+8,z+Math.sin(a)*2);frond.rotation.set(Math.cos(a)*1.1,0,Math.sin(a)*1.1);}
@@ -60,6 +62,11 @@ export function addRallyScenery({course,road,high,scene,mesh,mat,sample}){
   }else{
    const crystal=mesh(new THREE.ConeGeometry(2.5,9+i%4,5),ice,x,y+3,z);crystal.rotation.z=(i%3-1)*.18;
   }
+  // Settle the whole prop after its geometry and rotations are known, including
+  // the taller houses and tilted crystals. Bury the base slightly into the soil.
+  const bounds=new THREE.Box3().setFromObject(group),ground=groundHeight(x,z);
+  group.position.y+=ground-bounds.min.y-.4;
+  group.userData.groundAnchor={x,z,height:ground};
  }
  if(style.aurora){
   const sky=new THREE.Group();scene.add(sky);

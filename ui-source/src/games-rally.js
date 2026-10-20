@@ -4,7 +4,7 @@ import {RALLY_COURSES,clamp} from './game-mechanics.js';
 import {rallyRoad,rallySample,newRallyRace,rallyStep,newRallyView,rallyViewStep} from './racing-mechanics.js';
 import {buildRallyCar,rallyNavigation} from './rally-car.js';
 export {buildRallyCar} from './rally-car.js';
-import {rallyTerrain} from './rally-terrain.js';
+import {rallyTerrain,rallyGroundHeight} from './rally-terrain.js';
 import {rallyEnvironment,addRallyScenery} from './rally-scenery.js';
 // Continuous ribbons share section vertices; inclines have no stacked road boxes.
 export function rallyRibbon(road,inner,outer,lift=0){
@@ -33,21 +33,21 @@ export function setupRally({scene,camera,light,high,level,laps,player,mesh,mat,t
  const red=mat(style?.accent||'#bb4b43'),white=mat('#e6dfce');red.metalness=white.metalness=0;
  for(const side of [-1,1]){const lo=side<0?-course.width/2-.5:course.width/2;mesh(rallyRibbon(road,lo,lo+.5,.045),red);}
  const stripe=mat('#fff5cc');stripe.polygonOffset=true;stripe.polygonOffsetFactor=-1;stripe.polygonOffsetUnits=-1;mesh(rallyRibbon(road,-.05,.05,.014),stripe);
- // Elevated roads are supported by piers; terrain does not clip through the road.
- const terrainMat=mat(style?.terrain?'#ffffff':style?.ground||(course.theme==='alpine'?'#ffffff':course.theme==='canyon'?'#b18a65':'#719077'));terrainMat.vertexColors=Boolean(style?.terrain)||course.theme==='alpine';terrainMat.metalness=0;terrainMat.roughness=.96;const terrain=mesh(rallyTerrain(course,road,high),terrainMat);terrain.userData.softwareHidden=true;
- for(let i=0;i<road.points.length;i+=12){const point=road.points[i];if(point.y>1)mesh(new THREE.CylinderGeometry(.75,1.1,point.y+1.1,8),mat('#949996'),point.x,(point.y-1.1)/2,point.z);}
+ // Continuous ground follows the road and remains visible in software graphics.
+ const terrainMat=mat('#ffffff');terrainMat.vertexColors=true;terrainMat.metalness=0;terrainMat.roughness=.96;const terrain=mesh(rallyTerrain(course,road,high),terrainMat);terrain.name='rally-ground';terrain.castShadow=false;
+ const groundHeight=(x,z)=>rallyGroundHeight(terrain.geometry,x,z);
  const start=rallySample(road,0),banner=new THREE.Group();scene.add(banner);banner.position.set(start.x,start.y,start.z);banner.rotation.y=-start.heading;
  mesh(new THREE.BoxGeometry(.15,5,.15),white,0,2.5,-course.width/2-1,banner);mesh(new THREE.BoxGeometry(.15,5,.15),white,0,2.5,course.width/2+1,banner);mesh(new THREE.BoxGeometry(.25,.6,course.width+2.2),red,0,5,0,banner);
  for(let i=0;i<14;i++)mesh(new THREE.BoxGeometry(.8,.016,course.width/14),i%2?white:asphalt,0,.018,-course.width/2+(i+.5)*course.width/14,banner);
  // Trackside details are distributed along the longer routes, away from the road.
  const treeMat=mat('#345342'),bark=mat('#62574d'),rockMat=mat('#93968a'),buildingMat=mat(night?'#354352':'#7c898b');
  const count=style?0:high?90:28;
- for(let i=0;i<count;i++){const f=rallySample(road,i/count*road.length,(i%2?1:-1)*(course.width/2+12+i%4*5)),x=f.x,z=f.z,y=f.y-1;
+ for(let i=0;i<count;i++){const f=rallySample(road,i/count*road.length,(i%2?1:-1)*(course.width/2+12+i%4*5)),x=f.x,z=f.z,y=groundHeight(x,z)-.4;
   if(night||course.theme==='harbor'){const h=8+i*7%24;mesh(new RoundedBoxGeometry(6,h,7,1,.25),buildingMat,x,y+h/2,z);if(high){const window=mat('#ffd398');window.emissive.set('#ffbd6a');window.emissiveIntensity=night?1.2:.15;for(let j=2;j<h;j+=3)mesh(new THREE.BoxGeometry(4.8,.7,.04),window,x,y+j,z+3.52);}}
   else if(course.theme==='alpine'){mesh(new THREE.CylinderGeometry(.24,.32,5,6),bark,x,y+2.5,z);mesh(new THREE.ConeGeometry(2.5,8,high?12:5),treeMat,x,y+5,z);if(high)mesh(new THREE.ConeGeometry(1.8,5,10),treeMat,x,y+8,z);}
   else{const rock=mesh(new THREE.IcosahedronGeometry(4+i%4,high?1:0),rockMat,x,y+1,z);rock.scale.set(1,1.5,.8);}
  }
- const animateScenery=addRallyScenery({course,road,high,scene,mesh,mat,sample:rallySample});
+ const animateScenery=addRallyScenery({course,road,high,scene,mesh,mat,sample:rallySample,groundHeight});
  // Guardrails visually mark the exposed Alpine edge; braking boards reveal tight bends.
  const rail=mat('#b1b9bc');rail.metalness=.8;rail.roughness=.4;
  for(let d=0;d<road.length;d+=high?12:30){const f=rallySample(road,d),after=rallySample(road,d+18),bend=Math.atan2(Math.sin(after.heading-f.heading),Math.cos(after.heading-f.heading));

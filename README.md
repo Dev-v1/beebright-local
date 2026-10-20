@@ -7,13 +7,7 @@ A native desktop spelling practice app maintained, built and released entirely i
 In PowerShell:
 
 ```powershell
-irm https://raw.githubusercontent.com/Dev-v1/beebright-local/main/install.ps1 | iex
-```
-
-If the website installer has not been deployed yet, the standalone repository also serves it:
-
-```powershell
-irm https://raw.githubusercontent.com/Dev-v1/beebright-local/main/install.ps1 | iex
+irm https://beebright.vercel.app/install.ps1 | iex
 ```
 
 Then run:
@@ -35,7 +29,7 @@ It checks the latest verified package and preserves your local progress. An expl
 ## macOS and Linux install
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Dev-v1/beebright-local/main/install.sh | sh
+curl -fsSL https://beebright.vercel.app/install.sh | sh
 ```
 
 The installer downloads Astral uv from its official source and installs a private Python 3.15 runtime, requiring no administrator access. It adds `~/.local/bin` to your bash or zsh profile. Open a new terminal and type `beebright`, or immediately use `~/.local/bin/beebright`. The same UI opens in your default browser; keep the terminal open and use Ctrl+C to stop. No pywebview, login or cloud storage is needed. Install `espeak` or `espeak-ng` for Linux offline speech. macOS uses its built-in `say` voice.
@@ -81,16 +75,16 @@ Every update to main runs the local tests and builds a new GitHub Release with t
 
 ### Move an older installation to local-repository updates
 
-Older launchers checked the website first. Run the local installer once to replace that launcher without deleting progress:
+Older launchers checked the website first. Run the original install command once to replace that launcher without deleting progress:
 
 ```powershell
-irm https://raw.githubusercontent.com/Dev-v1/beebright-local/main/install.ps1 | iex
+irm https://beebright.vercel.app/install.ps1 | iex
 ```
 
 On macOS or Linux:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/Dev-v1/beebright-local/main/install.sh | sh
+curl -fsSL https://beebright.vercel.app/install.sh | sh
 ```
 
 After this one-time migration, use `beebright update` normally.

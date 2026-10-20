@@ -41,6 +41,10 @@ jobs:
           $env:BEEBRIGHT_TEST_GAME_MENU = 'test'
           python tools/test_local_ui.py
           if ($LASTEXITCODE) { throw 'Native game menu failed.' }
+          Remove-Item Env:BEEBRIGHT_TEST_GAME_MENU
+          $env:BEEBRIGHT_DATA_DIR = Join-Path $env:RUNNER_TEMP 'bee-normal-break-data'
+          python tools/test_local_ui.py
+          if ($LASTEXITCODE) { throw 'Normal practice break and twelve tracks failed.' }
   publish:
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'

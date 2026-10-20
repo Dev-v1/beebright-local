@@ -4,6 +4,7 @@ import * as THREE from 'three';
 import {RALLY_COURSES} from './game-mechanics.js';
 import {rallyRoad,rallySample} from './racing-mechanics.js';
 import {rallyEnvironment,addRallyScenery,auroraCurtain} from './rally-scenery.js';
+import {rallyTerrain,rallyGroundHeight} from './rally-terrain.js';
 
 test('original tracks retain their scenery while all eight additions have different environments',()=>{
  assert.deepEqual(RALLY_COURSES.slice(0,4).map(c=>[c.name,c.width,c.scenery]),[['Harbor Circuit',20,undefined],['Canyon Switchback',18,undefined],['Alpine Hairpins',18,undefined],['Midnight Metro',20,undefined]]);
@@ -28,12 +29,18 @@ test('aurora curtains form closed finite ribbons with visible color variation',(
 
 test('all new scenery builds in both qualities and northern lights animate without casting shadows',()=>{
  for(const high of [false,true])for(const course of RALLY_COURSES.slice(4)){
-  const scene=new THREE.Scene(),geometries=[],materials=[],road=rallyRoad(course);
+  const scene=new THREE.Scene(),geometries=[],materials=[],road=rallyRoad(course),ground=rallyTerrain(course,road,high);
   const mat=color=>{const m=new THREE.MeshStandardMaterial({color});materials.push(m);return m;};
   const mesh=(g,m,x=0,y=0,z=0,parent=scene)=>{geometries.push(g);const node=new THREE.Mesh(g,m);node.position.set(x,y,z);parent.add(node);return node;};
-  const animate=addRallyScenery({course,road,high,scene,mesh,mat,sample:rallySample}),camera=new THREE.PerspectiveCamera();camera.position.set(30,4,-20);animate(2,camera);
+  const animate=addRallyScenery({course,road,high,scene,mesh,mat,sample:rallySample,groundHeight:(x,z)=>rallyGroundHeight(ground,x,z)}),camera=new THREE.PerspectiveCamera();camera.position.set(30,4,-20);animate(2,camera);
+  for(const group of scene.children.filter(n=>n.userData.groundAnchor)){
+   const {x,z}=group.userData.groundAnchor,bounds=new THREE.Box3().setFromObject(group);
+   const surface=new THREE.Mesh(ground,new THREE.MeshBasicMaterial({side:THREE.DoubleSide})),ray=new THREE.Raycaster(new THREE.Vector3(x,500,z),new THREE.Vector3(0,-1,0)),hit=ray.intersectObject(surface)[0];
+   assert.ok(hit,course.name+' has ground beneath every scenery object');
+   assert.ok(Math.abs(bounds.min.y-(hit.point.y-.4))<.001,course.name+' scenery is planted in its rendered ground');surface.material.dispose();
+  }
   assert.ok(geometries.length>20,course.name);
   if(rallyEnvironment(course).aurora){const curtain=scene.getObjectByName('northern-lights-0'),before=curtain.rotation.y;assert.ok(curtain);assert.equal(curtain.castShadow,false);assert.equal(curtain.material.fog,false);assert.equal(curtain.parent.position.x,30);animate(8,camera);assert.notEqual(curtain.rotation.y,before);}
-  for(const geometry of geometries)geometry.dispose();for(const material of materials)material.dispose();
+  ground.dispose();for(const geometry of geometries)geometry.dispose();for(const material of materials)material.dispose();
  }
 });
