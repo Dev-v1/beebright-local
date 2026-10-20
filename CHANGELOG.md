@@ -1,4 +1,8 @@
-# BeeBright Local 2.7.1
+# BeeBright Local 2.7.2
+
+- Align cactus and mesa bases, and seat every town roof directly on its house.
+
+## 2.7.1
 
 - All twelve tracks, including Aurora Fjord and Polar Night Pass, are available in normal practice Break Time.
 - Continuous ground follows the inclines on every track. Trackside scenery is planted in the rendered terrain instead of floating at the road height.

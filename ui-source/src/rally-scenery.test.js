@@ -38,6 +38,12 @@ test('all new scenery builds in both qualities and northern lights animate witho
    const surface=new THREE.Mesh(ground,new THREE.MeshBasicMaterial({side:THREE.DoubleSide})),ray=new THREE.Raycaster(new THREE.Vector3(x,500,z),new THREE.Vector3(0,-1,0)),hit=ray.intersectObject(surface)[0];
    assert.ok(hit,course.name+' has ground beneath every scenery object');
    assert.ok(Math.abs(bounds.min.y-(hit.point.y-.4))<.001,course.name+' scenery is planted in its rendered ground');surface.material.dispose();
+   if(course.scenery==='mesa'){
+    const stem=new THREE.Box3().setFromObject(group.children[0]);assert.ok(Math.abs(stem.min.y-bounds.min.y)<.001,'cactus stem shares the grounded base instead of floating above its mesa');
+   }
+   if(course.scenery==='town'){
+    const walls=new THREE.Box3().setFromObject(group.children[0]),roof=new THREE.Box3().setFromObject(group.children[1]);assert.ok(Math.abs(walls.max.y-roof.min.y)<.001,'roof rests on the house');
+   }
   }
   assert.ok(geometries.length>20,course.name);
   if(rallyEnvironment(course).aurora){const curtain=scene.getObjectByName('northern-lights-0'),before=curtain.rotation.y;assert.ok(curtain);assert.equal(curtain.castShadow,false);assert.equal(curtain.material.fog,false);assert.equal(curtain.parent.position.x,30);animate(8,camera);assert.notEqual(curtain.rotation.y,before);}

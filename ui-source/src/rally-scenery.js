@@ -42,7 +42,7 @@ export function addRallyScenery({course,road,high,scene,mesh,mat,sample,groundHe
    mesh(new THREE.CylinderGeometry(.65,.8,6,7),leaf,x,y+3,z);
    mesh(new THREE.BoxGeometry(4,.7,.8),leaf,x,y+3.5,z);
    for(const side of [-1,1])mesh(new THREE.CylinderGeometry(.4,.4,2.4,6),leaf,x+side*1.6,y+4.4,z);
-   if(i%4===0)mesh(new THREE.CylinderGeometry(7,10,11,6),stone,x+12,y+2,z+14);
+   if(i%4===0)mesh(new THREE.CylinderGeometry(7,10,11,6),stone,x+12,y+5.5,z+14);
   }else if(['autumn','snow','frozen'].includes(style.props)){
    mesh(new THREE.CylinderGeometry(.35,.5,7,6),trunk,x,y+3.5,z);
    if(style.props==='autumn'){
@@ -53,8 +53,8 @@ export function addRallyScenery({course,road,high,scene,mesh,mat,sample,groundHe
    }
   }else if(style.props==='houses'){
    const paint=mat(['#e7b38b','#b5bb9b','#b7a4c7','#d5958f'][i%4]);
-   mesh(new THREE.BoxGeometry(9,5+i%3,8),paint,x,y+2.5,z);
-   const roof=mesh(new THREE.ConeGeometry(7,3,4),wood,x,y+6+i%3,z);roof.rotation.y=Math.PI/4;
+   const height=5+i%3;mesh(new THREE.BoxGeometry(9,height,8),paint,x,y+height/2,z);
+   const roof=mesh(new THREE.ConeGeometry(7,3,4),wood,x,y+height+1.5,z);roof.rotation.y=Math.PI/4;
   }else if(style.props==='cargo'){
    const paint=mat(['#ba6557','#4a9b9c','#d5a34e'][i%3]);
    mesh(new THREE.BoxGeometry(12,3.5,5),paint,x,y+1.75,z);
