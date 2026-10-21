@@ -45,6 +45,14 @@ jobs:
           $env:BEEBRIGHT_DATA_DIR = Join-Path $env:RUNNER_TEMP 'bee-normal-break-data'
           python tools/test_local_ui.py
           if ($LASTEXITCODE) { throw 'Normal practice break and twelve tracks failed.' }
+      - name: Save racing verification views
+        if: runner.os == 'Windows' && always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: local-racing-views
+          path: ${{ runner.temp }}/bee-racing-views
+          if-no-files-found: ignore
+          retention-days: 3
   publish:
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
@@ -71,12 +79,14 @@ jobs:
           fi
           # Legacy launchers can still discover the package through the raw main manifest.
           # The new updater uses the manifest attached to the published release first.
+          # Start the manifest commit on current main; another queued release may
+          # have updated it since this source revision was checked out.
+          git pull --ff-only origin main
           cp dist/update-manifest.json update-manifest.json
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add update-manifest.json
           if ! git diff --cached --quiet; then
             git commit -m "Update local release manifest for $TAG"
-            git pull --rebase origin main
             git push origin HEAD:main
           fi

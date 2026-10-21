@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {RALLY_COURSES,clamp} from './game-mechanics.js';
-import {rallyRoad,rallySample,newRallyRace,rallyStep,newRallyView,rallyViewStep} from './racing-mechanics.js';
+import {rallyRoad,rallySample,newRallyRace,rallyStep,newRallyView,rallyViewStep,rallySurfaceHeight,rallySurfacePose} from './racing-mechanics.js';
 import {buildRallyCar,rallyNavigation} from './rally-car.js';
 export {buildRallyCar} from './rally-car.js';
 import {rallyTerrain,rallyGroundHeight} from './rally-terrain.js';
@@ -14,6 +14,23 @@ export function rallyRibbon(road,inner,outer,lift=0){
  }
  for(let i=0;i<n;i++){const a=i*2;indices.push(a,a+1,a+2,a+1,a+3,a+2);}
  const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geo.setAttribute('uv',new THREE.Float32BufferAttribute(uv,2));geo.setIndex(indices);geo.computeVertexNormals();return geo;
+}
+// Solid sloping shoulders close the air gap between the verge and the terrain.
+export function rallyEmbankment(road,side){
+ const positions=[],indices=[],n=road.points.length,across=6;
+ for(let i=0;i<=n;i++)for(let j=0;j<=across;j++){
+  const k=i%n,prev=road.points[(k+n-1)%n],next=road.points[(k+1)%n],dx=next.x-prev.x,dz=next.z-prev.z,length=Math.hypot(dx,dz),offset=side*(road.width/2+3+j),x=road.points[k].x-dz/length*offset,z=road.points[k].z+dx/length*offset;
+  positions.push(x,rallySurfaceHeight(road,x,z)-.005,z);
+ }
+ for(let i=0;i<n;i++)for(let j=0;j<across;j++){const a=i*(across+1)+j,b=a+across+1;indices.push(...(side>0?[a,a+1,b,a+1,b+1,b]:[a,b,a+1,a+1,b,b+1]));}
+ // Inside a very tight hairpin the outer grid can fold back. Keep every
+ // triangle facing up so back-face culling cannot open a hole in the ground.
+ for(let i=0;i<indices.length;i+=3){const [a,b,c]=indices.slice(i,i+3).map(v=>v*3),up=(positions[b+2]-positions[a+2])*(positions[c]-positions[a])-(positions[b]-positions[a])*(positions[c+2]-positions[a+2]);if(up<0)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];}
+ const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(positions,3));geo.setIndex(indices);geo.computeVertexNormals();return geo;
+}
+export function rallyCarSurfacePose(car,state,road){
+ const cross=state.crossGrade||0;car.parent.position.set(state.x,state.y,state.z);car.parent.rotation.order='YXZ';car.parent.rotation.set(-Math.atan(cross),-state.heading,Math.atan((state.grade||0)/Math.sqrt(1+cross*cross)));car.parent.updateMatrixWorld(true);
+ for(const wheel of car.wheels){const axle=wheel.steering,contact=car.parent.localToWorld(new THREE.Vector3(axle.position.x,0,axle.position.z));contact.y=rallySurfaceHeight(road,contact.x,contact.z);axle.position.y=car.parent.worldToLocal(contact).y+.375;}
 }
 export function setupRally({scene,camera,light,high,level,laps,player,mesh,mat,textures,materials,finish,notify}){
  const course=RALLY_COURSES[level]||RALLY_COURSES[0],road=rallyRoad(course,laps),race=newRallyRace(road),view=newRallyView(),style=rallyEnvironment(course),night=style?.night??(course.theme==='city');
@@ -36,6 +53,9 @@ export function setupRally({scene,camera,light,high,level,laps,player,mesh,mat,t
  // Continuous ground follows the road and remains visible in software graphics.
  const terrainMat=mat('#ffffff');terrainMat.vertexColors=true;terrainMat.metalness=0;terrainMat.roughness=.96;const terrain=mesh(rallyTerrain(course,road,high),terrainMat);terrain.name='rally-ground';terrain.castShadow=false;
  const groundHeight=(x,z)=>rallyGroundHeight(terrain.geometry,x,z);
+ road.groundHeight=groundHeight;
+ for(const side of [-1,1])mesh(rallyEmbankment(road,side),verge);
+ rallySurfacePose(road,race.player);
  const start=rallySample(road,0),banner=new THREE.Group();scene.add(banner);banner.position.set(start.x,start.y,start.z);banner.rotation.y=-start.heading;
  mesh(new THREE.BoxGeometry(.15,5,.15),white,0,2.5,-course.width/2-1,banner);mesh(new THREE.BoxGeometry(.15,5,.15),white,0,2.5,course.width/2+1,banner);mesh(new THREE.BoxGeometry(.25,.6,course.width+2.2),red,0,5,0,banner);
  for(let i=0;i<14;i++)mesh(new THREE.BoxGeometry(.8,.016,course.width/14),i%2?white:asphalt,0,.018,-course.width/2+(i+.5)*course.width/14,banner);
@@ -58,7 +78,7 @@ export function setupRally({scene,camera,light,high,level,laps,player,mesh,mat,t
  for(let i=0;i<5;i++){const group=i===0?player:new THREE.Group();if(i)scene.add(group);let paint=mat(paints[i]);if(high){paint.dispose();materials.splice(materials.indexOf(paint),1);paint=new THREE.MeshPhysicalMaterial({color:paints[i],metalness:.6,roughness:.2,clearcoat:1,clearcoatRoughness:.09,envMapIntensity:1.55});materials.push(paint);}cars.push(buildRallyCar({high,paint,mesh,mat,parent:group}));}
  if(high&&night){const headlight=new THREE.SpotLight('#dff2ff',25,35,.48,.45,1.5),target=new THREE.Object3D();headlight.position.set(1.5,.6,0);target.position.set(12,-.1,0);player.add(headlight,target);headlight.target=target;}
  const gateMarker=mesh(new THREE.TorusGeometry(.8,.08,6,16),mat('#a7e0a2'));
- function pose(car,state,dt){car.parent.visible=!state.finished||(state.finishAge??0)<5;car.parent.position.set(state.x,state.y+.02,state.z);car.parent.rotation.order='YXZ';car.parent.rotation.set(clamp((state.lane??0)*state.speed*.0005,-.035,.035),-state.heading,Math.atan(state.grade||0));
+ function pose(car,state,dt){car.parent.visible=!state.finished||(state.finishAge??0)<5;rallyCarSurfacePose(car,state,road);
   for(const wheel of car.wheels){wheel.spin.rotation.z-=state.speed*dt/.375;if(wheel.front)wheel.steering.rotation.y=-(state.steer||0)*.32;}car.animate(state,dt,state===race.player?rallyNavigation(road,race):null);
   car.tail.emissiveIntensity=state===race.player&&race.input?.down?2.5:.4;
  }
@@ -66,13 +86,13 @@ export function setupRally({scene,camera,light,high,level,laps,player,mesh,mat,t
   cars[0].setCockpit(view.cockpit);
   if(view.changed){camera.fov=view.cockpit?88:58;camera.near=view.cockpit?.025:.1;camera.updateProjectionMatrix();}
   if(view.cockpit){player.updateMatrixWorld(true);const eye=player.localToWorld(new THREE.Vector3(-.64,1.23,.34)),target=player.localToWorld(new THREE.Vector3(24,1.18,.34));camera.position.copy(eye);camera.up.set(0,1,0);camera.lookAt(target);}
-  else{const behind=new THREE.Vector3(p.x-Math.cos(p.heading)*10,p.y+4.2,p.z-Math.sin(p.heading)*10);if(view.changed)camera.position.copy(behind);else camera.position.lerp(behind,1-Math.exp(-dt*7));const look=rallySample(road,p.travel+8);camera.lookAt(p.x+Math.cos(p.heading)*6,(p.y+look.y)/2+.85,p.z+Math.sin(p.heading)*6);}
+  else{const behind=new THREE.Vector3(p.x-Math.cos(p.heading)*10,p.y+4.2,p.z-Math.sin(p.heading)*10);if(view.changed)camera.position.copy(behind);else camera.position.lerp(behind,1-Math.exp(-dt*7));camera.lookAt(p.x+Math.cos(p.heading)*6,p.y+(p.grade||0)*4+.85,p.z+Math.sin(p.heading)*6);}
   animateScenery(race.time,camera);
  }
  const p=race.player;camera.position.set(p.x-Math.cos(p.heading)*10,p.y+5.3,p.z-Math.sin(p.heading)*10);render(0);
  return {player:p,road,race,view,pause(input){view.previous=Boolean(input.camera);},update(input,dt){rallyViewStep(view,input.camera);race.input=input;rallyStep(race,road,input,dt);render(dt);
    const lap=Math.min(road.laps,Math.floor(Math.max(0,p.travel)/road.length)+1),speed=p.speed<-.2?'REVERSE':Math.round(Math.abs(p.speed)*3.6)+' km/h';
-   notify(`${course.name} · ${view.cockpit?'Cockpit':'Chase'} · Place ${race.place}/5 · Lap ${lap}/${road.laps} · ${speed} · Gear ${p.gear===-1?'R':p.gear??1} · ${race.time.toFixed(1)}s · Hill ${Math.round(p.y)}m`);
+   notify(`${p.offRoad?'Get back on the track · ':''}${course.name} · ${view.cockpit?'Cockpit':'Chase'} · Place ${race.place}/5 · Lap ${lap}/${road.laps} · ${speed} · Gear ${p.gear===-1?'R':p.gear??1} · ${race.time.toFixed(1)}s · Hill ${Math.round(p.y)}m`);
    if(race.finished){const score=Math.round(600000/race.time)+(6-race.place)*500;finish(race.place===1,`${course.name}: finished ${race.place} of 5 · ${road.laps} laps in ${race.time.toFixed(1)} seconds.`,score);}
  }};
 }

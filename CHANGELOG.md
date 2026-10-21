@@ -1,4 +1,11 @@
-# BeeBright Local 2.7.2
+# BeeBright Local 2.7.3
+
+- Cars follow the ground under their wheels off the road, including uphill, downhill and side slopes. Wheel suspension keeps the tires planted in both graphics modes.
+- Solid sloping embankments connect road shoulders to the surrounding terrain instead of leaving a floating edge.
+- Touching the edge no longer instantly caps speed or applies heavy off-road braking. Normal acceleration, braking and momentum continue.
+- A visible "Get back on the track" warning appears off-road and clears when you return. Off-road shortcuts still do not count toward lap checkpoints.
+
+## 2.7.2
 
 - Align cactus and mesa bases, and seat every town roof directly on its house.
 

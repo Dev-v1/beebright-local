@@ -160,6 +160,12 @@ def test(w):
             w.evaluate_js("window.dispatchEvent(new KeyboardEvent('keydown',{key:'R'}))")
             wait(w,"document.querySelector('.arcade-player-bar').innerText.includes('Chase')")
             w.evaluate_js("window.dispatchEvent(new KeyboardEvent('keyup',{key:'R'}))")
+            if track == 5:
+                w.evaluate_js("window.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowUp'}));window.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft'}))")
+                wait(w,"document.querySelector('.race-track-warning')?.innerText==='Get back on the track'")
+                w.evaluate_js("window.dispatchEvent(new KeyboardEvent('keyup',{key:'ArrowUp'}));window.dispatchEvent(new KeyboardEvent('keyup',{key:'ArrowLeft'}))")
+                assert w.evaluate_js("document.querySelector('.arcade-player-bar').innerText.includes('Get back on the track')")
+                capture(w,'off-track-ground-contact')
             w.evaluate_js("document.querySelector('.arcade-player-bar button').click()")
             wait(w,"document.querySelectorAll('.game-card').length===8")
         # Start every revised Marble course in High quality and move the follow camera.

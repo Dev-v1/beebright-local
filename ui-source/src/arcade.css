@@ -5,3 +5,5 @@
 .game-graphics{font-size:12px;color:var(--muted);overflow-wrap:anywhere;display:flex;flex-wrap:wrap;gap:14px}.game-graphics a{color:inherit;text-decoration:underline}.arcade-quality select:focus-visible{outline:2px solid #7ed9ee;outline-offset:2px}
 
 [data-theme="dark"] .arcade-quality,[data-theme="dark"] .arcade-quality select{background:#18312d;color:#e6f2ed}
+
+.race-track-warning{position:absolute;top:14px;left:50%;transform:translateX(-50%);padding:10px 18px;border:2px solid #ffc76b;border-radius:10px;background:#382611ed;color:#fff1d2;font-weight:700;text-align:center;pointer-events:none;z-index:2;max-width:85%;}
