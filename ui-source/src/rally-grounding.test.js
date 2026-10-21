@@ -60,3 +60,31 @@ test('fast off-road travel still cannot award shortcut checkpoints',()=>{
  Object.assign(race.player,rallySample(road,road.length/12,40),{speed:38,travel:road.length/12,previous:road.length/12,gates:0});
  rallyStep(race,road,{up:true},.1);assert.equal(race.player.offRoad,true);assert.equal(race.player.gates,0);
 });
+
+test('off-road top speed eases down slightly and normal acceleration returns on asphalt',()=>{
+ const course={...RALLY_COURSES[0],heights:RALLY_COURSES[0].heights.map(()=>0)},road=rallyRoad(course),race=newRallyRace(road),p=race.player;race.opponents=[];road.groundHeight=()=>0;
+ Object.assign(p,{x:1000,z:1000,heading:0,speed:42,grade:0});rallySurfacePose(road,p);
+ rallyStep(race,road,{up:true},1/60);assert.ok(p.speed<42&&p.speed>41.7,'first contact keeps momentum');
+ for(let i=1;i<120;i++)rallyStep(race,road,{up:true},1/60);
+ assert.ok(p.speed>38.5&&p.speed<40,'two seconds off-road produces a small, gradual slowdown');
+ for(let i=0;i<360;i++)rallyStep(race,road,{up:true},1/60);
+ assert.ok(p.speed>=37.4&&p.speed<=37.6,'full-throttle off-road speed stays only a little lower');
+ Object.assign(p,rallySample(road,120));rallySurfacePose(road,p);
+ for(let i=0;i<30;i++)rallyStep(race,road,{up:true},1/60);
+ assert.ok(p.speed>41,'returning to asphalt restores normal acceleration');
+});
+
+test('off-road coasting has a mild extra resistance in forward and reverse',()=>{
+ const course={...RALLY_COURSES[0],heights:RALLY_COURSES[0].heights.map(()=>0)};
+ for(const speed of [30,-8]){
+  const speeds=[];
+  for(const offRoad of [false,true]){
+   const road=rallyRoad(course),race=newRallyRace(road),p=race.player;race.opponents=[];road.groundHeight=()=>0;
+   Object.assign(p,offRoad?{x:1000,z:1000,heading:0,grade:0}:rallySample(road,120),{speed});rallySurfacePose(road,p);
+   for(let i=0;i<60;i++)rallyStep(race,road,{},1/60);
+   speeds.push(Math.abs(p.speed));
+  }
+  assert.ok(speeds[1]<speeds[0],'grass adds some rolling resistance');
+  assert.ok(speeds[0]-speeds[1]<2,'the extra slowdown remains gentle');
+ }
+});

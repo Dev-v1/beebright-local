@@ -1,4 +1,10 @@
-# BeeBright Local 2.7.3
+# BeeBright Local 2.7.4
+
+- Gentle off-road resistance gradually lowers speed. Full-throttle speed settles about 11% below asphalt speed, without the old instant slowdown.
+- The resistance eases in over the first three metres beyond the edge and normal acceleration returns on the track.
+- Ground-following tires and the "Get back on the track" warning remain in place.
+
+## 2.7.3
 
 - Cars follow the ground under their wheels off the road, including uphill, downhill and side slopes. Wheel suspension keeps the tires planted in both graphics modes.
 - Solid sloping embankments connect road shoulders to the surrounding terrain instead of leaving a floating edge.

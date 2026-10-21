@@ -66,12 +66,18 @@ export function newRallyRace(road){const start=rallySample(road,0,0),player={...
  for(const car of opponents)Object.assign(car,rallySample(road,car.travel,car.lane));
  return {player,opponents,time:0,place:1,finished:false};
 }
-function drive(p,input,h,grade){const throttle=Number(Boolean(input.up)),brake=Number(Boolean(input.down));
+function drive(p,input,h,grade,offRoad){const throttle=Number(Boolean(input.up)),brake=Number(Boolean(input.down));
  p.speed-=grade*9.81*h;
  if(throttle)p.speed+=9.5*h;
  if(brake)p.speed-=p.speed>0?15*h:5*h;
  if(!throttle&&!brake)p.speed*=Math.exp(-.32*h);
  p.speed=clamp(p.speed,-8,42);
+ if(offRoad>0){
+  // Ease toward a modestly lower top speed; never snap to a grass speed cap.
+  const surfaceLimit=42-4.5*offRoad;
+  if(p.speed>surfaceLimit)p.speed-=Math.min(p.speed-surfaceLimit,((throttle?9.5:0)+1.25*offRoad)*h);
+  if(!throttle&&!brake)p.speed*=Math.exp(-.06*offRoad*h);
+ }
  const steering=Number(Boolean(input.right))-Number(Boolean(input.left));p.steer+=(steering-p.steer)*Math.min(1,h*10);
  p.heading+=p.steer*h*2*clamp(p.speed/9,-1,1)/(1+Math.abs(p.speed)*.022);
  p.x+=Math.cos(p.heading)*p.speed*h;p.z+=Math.sin(p.heading)*p.speed*h;
@@ -80,7 +86,8 @@ export function rallyStep(race,road,input,dt){
  const steps=Math.max(1,Math.ceil(dt*90)),h=dt/steps,p=race.player,finish=road.length*road.laps;
  for(let n=0;n<steps;n++){
   race.time+=h;let f=rallyProject(road,p.x,p.z);
-  drive(p,input,h,p.grade??f.grade*Math.cos(p.heading-f.heading));f=rallyProject(road,p.x,p.z);
+  const offRoad=THREE.MathUtils.smoothstep(f.distance,road.width/2,road.width/2+3);
+  drive(p,input,h,p.grade??f.grade*Math.cos(p.heading-f.heading),offRoad);f=rallyProject(road,p.x,p.z);
   const delta=rallyProgress(p.previous,f.progress,road.length,Math.abs(p.speed)*h+1);
   if(f.distance<road.width/2){p.travel+=delta;const next=(p.gates+1)*road.length/12;if(p.travel>=next&&p.travel-next<road.length/12*.5)p.gates++;}
   p.previous=f.progress;
