@@ -127,7 +127,7 @@ def flush(c):
     try:
         if state.get('studio'):
             data = engine.read_json(cache_name(c,'studio'),{}) or {}
-            result = remote('/api/account/studio','PUT',{'data':data,'merge_favorites':False},c['token'])
+            result = remote('/api/account/studio','PUT',{'data':data,'merge_favorites':not engine.read_json(cache_name(c,'studio-loaded'),False)},c['token'])
             engine.save_json(cache_name(c,'studio'),result)
             state.pop('studio',None)
             engine.save_json(cache_name(c,'pending'),state)
@@ -199,6 +199,7 @@ def request(path, method='GET', payload=None):
                 try:
                     value = remote('/api/account/progress' if name == 'progress' else '/api/account/studio',token=c['token'])
                     if name == 'progress': engine.save_json(cache_name(c,'revision'),value['revision'])
+                    else: engine.save_json(cache_name(c,'studio-loaded'),True)
                     engine.save_json(cache_name(c,name),value.get('session') if name == 'progress' else value)
                     c['error']='';save_config(c)
                 except ValueError as exc:
