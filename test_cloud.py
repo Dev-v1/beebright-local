@@ -115,3 +115,29 @@ class CloudTests(unittest.TestCase):
         self.assertEqual(set(server),{'cloud','offline'})
         self.assertEqual(len(engine.read_json(cloud.cache_name(cloud.config(),'studio'))['events']),2)
         self.assertEqual(engine.read_json(cloud.cache_name(cloud.config(),'pending')),{})
+
+    def test_network_retry_does_not_block_saves_or_clear_newer_changes(self):
+        import threading
+        cloud.save_config(self.account)
+        original=cloud.config()
+        first={'words':[{'word':'bee'}],'index':0}
+        newer={'words':[{'word':'bee'}],'index':1}
+        cloud.request('/api/progress','PUT',{'session':first})
+        entered=threading.Event();release=threading.Event();written=threading.Event()
+        def network(*args,**kwargs):
+            entered.set();release.wait(5)
+            return {'revision':'saved-first'}
+        self.remote_mock.side_effect=network
+        upload=threading.Thread(target=lambda:cloud.flush(original))
+        upload.start()
+        self.assertTrue(entered.wait(2))
+        def edit():
+            cloud.request('/api/progress','PUT',{'session':newer})
+            cloud.request('/api/account/mode','PUT',{'mode':'local'})
+            written.set()
+        writer=threading.Thread(target=edit);writer.start()
+        try:self.assertTrue(written.wait(1),'Background network work blocked a local cache save.')
+        finally:release.set();upload.join(3);writer.join(3)
+        self.assertEqual(cloud.status()['mode'],'local')
+        self.assertEqual(engine.read_json(cloud.cache_name(original,'progress')),newer)
+        self.assertTrue(engine.read_json(cloud.cache_name(original,'pending'))['progress'])
