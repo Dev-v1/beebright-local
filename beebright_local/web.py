@@ -82,7 +82,7 @@ class LocalHandler(BaseHTTPRequestHandler):
             operation = data.get('operation')
             if operation == 'request':
                 path, method = data.get('path'), data.get('method', 'GET')
-                if not isinstance(path, str) or method not in ('GET', 'PUT', 'DELETE'):
+                if not isinstance(path, str) or method not in ('GET', 'POST', 'PUT', 'DELETE'):
                     raise ValueError('Invalid practice route.')
                 result = self.server.api.request(path, method, data.get('payload'))
             elif operation == 'settings':

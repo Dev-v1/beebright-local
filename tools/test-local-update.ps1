@@ -44,7 +44,7 @@ if (-not (Test-Path "$Package/beebright_local/app.py")) { throw 'Offline fallbac
 $global:BeeTestOpened = ''
 function Start-Process { param($FilePath) $global:BeeTestOpened = $FilePath }
 & (Join-Path $Repo 'bootstrap.ps1') web
-if ($global:BeeTestOpened -ne 'https://beebright.vercel.app/') { throw 'Web command did not open the website.' }
+if ($global:BeeTestOpened -ne 'https://beebright.app/') { throw 'Web command did not open the website.' }
 $InvalidCommandFailed = $false
 try { & (Join-Path $Repo 'bootstrap.ps1') create invalid } catch { $InvalidCommandFailed = $true }
 if (-not $InvalidCommandFailed) { throw 'Invalid create command did not report usage.' }

@@ -63,6 +63,21 @@ def reminder_worker():
 
 def terminal(command, args):
     """Return False when a command belongs in the shared UI."""
+    if command in ('login','logout','sync'):
+        from . import cloud
+        if command == 'login':
+            value = cloud.login()
+            print('Open https://www.beebright.app/classrooms and approve device code: ' + value.get('code','Already signed in'))
+            while cloud.status().get('pending'):
+                time.sleep(2)
+            value = cloud.status()
+            if not value.get('signed_in'): raise ValueError(value.get('error') or 'Login cancelled.')
+            print('Signed in. Cloud saving is on by default. Open BeeBright to practice.')
+        elif command == 'logout':
+            cloud.request('/api/account/logout','PUT');print('Signed out. Local-only mode is active.')
+        else:
+            cloud.request('/api/account/sync','PUT');print('Local progress synced to your account.')
+        return True
     if command == 'doctor':
         checks = studio.diagnostic()
         for c in checks: print(f"{'OK' if c['ok'] else 'CHECK'}  {c['name']}: {c['detail']}")

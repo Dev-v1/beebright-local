@@ -1,0 +1,28 @@
+name: Account browser regression
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths-ignore: [update-manifest.json]
+concurrency:
+  group: account-ui-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  account-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.15'
+      - run: npm ci --prefix ui-source
+      - run: node tools/build-release.mjs
+      - run: npm install --prefix .ui-test --no-package-lock playwright@1.64.1
+      - run: ./.ui-test/node_modules/.bin/playwright install --with-deps chromium
+      - run: node tools/test_account_ui.cjs

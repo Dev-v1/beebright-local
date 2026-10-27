@@ -36,6 +36,11 @@ class DesktopApi:
         if parsed.scheme or parsed.netloc:
             raise ValueError('Only local practice is supported.')
         route = unquote(parsed.path)
+        from . import cloud
+        if route.startswith('/api/account/') or route.startswith('/api/classrooms') or route == '/api/activity':
+            return cloud.request(route, method, payload)
+        if route in ('/api/progress','/api/studio') and cloud.config().get('mode') == 'cloud':
+            return cloud.request(route, method, payload)
         if route == '/api/studio' and method == 'GET':
             return studio.read('studio.json', {})
         if route == '/api/studio' and method == 'PUT':

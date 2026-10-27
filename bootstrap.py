@@ -72,9 +72,12 @@ def update():
 
 
 HELP = """BeeBright commands
+  beebright login           Sign in through your browser; enable cloud saving.
+  beebright logout          Sign out and use local-only progress.
+  beebright sync            Import local progress into your signed-in account.
   beebright                 Open local spelling practice; check for updates first.
   beebright update          Update the app and private Python runtime.
-  beebright web             Open https://beebright.vercel.app/.
+  beebright web             Open https://beebright.app/.
   beebright create web      Open local practice in a browser; Ctrl+C stops it.
   beebright -v              Show installed version (also --v, --version, -version).
   beebright help            Show commands without internet access.
@@ -144,9 +147,9 @@ def main(args=None):
         print(f"BeeBright {release['version']}")
         return
     if args == ['web']:
-        webbrowser.open('https://beebright.vercel.app/')
+        webbrowser.open('https://beebright.app/')
         return
-    features = ['daily', 'review', 'compete', 'doctor', 'stats', 'profile', 'backup', 'restore', 'sprint', 'lists', 'practice', 'audio', 'origins', 'pairs', 'favorites', 'worksheet', 'remind', 'achievements', 'duel', 'changelog']
+    features = ['daily', 'review', 'compete', 'doctor', 'stats', 'profile', 'backup', 'restore', 'sprint', 'lists', 'practice', 'audio', 'origins', 'pairs', 'favorites', 'worksheet', 'remind', 'achievements', 'duel', 'changelog', 'login', 'logout', 'sync']
     if (args and args[0] in features) or args in (['test','game'], ['check','game']):
         os.environ['BEEBRIGHT_DATA_DIR'] = str(ROOT / 'userdata')
         sys.path.insert(0, str(CURRENT))

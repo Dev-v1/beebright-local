@@ -10,7 +10,7 @@ parser.add_argument('-v', '--v', '--version', '-version', action='version', vers
 parser.add_argument('--web', action='store_true', help='Serve the offline UI in your browser')
 parser.add_argument('--port', type=int, default=8765)
 parser.add_argument('--reminder-worker', action='store_true', help=argparse.SUPPRESS)
-parser.add_argument('command', nargs='?', choices=COMMANDS)
+parser.add_argument('command', nargs='?', choices=(*COMMANDS, "login", "logout", "sync"))
 parser.add_argument('arguments', nargs='*')
 raw = sys.argv[1:]
 private_game = raw[-2:] in (['test', 'game'], ['check', 'game'])

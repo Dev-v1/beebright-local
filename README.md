@@ -180,3 +180,13 @@ beebright uninstall
 
 This removes BeeBright, its private runtimes, terminal launcher, local saved progress and settings. Other Python installations, shared WebView2 and website account/progress remain. Back up your BeeBright `userdata` folder first if you want to retain progress. On Windows it is `%LOCALAPPDATA%\BeeBright\userdata`; on macOS/Linux it is `~/.local/share/BeeBright/userdata`.
 
+
+## Accounts and classrooms (2.7.5)
+
+Run beebright login and approve the displayed code at https://www.beebright.app/classrooms using your BeeBright account. Never approve a code from another person. Cloud saving starts automatically; the desktop credential expires after 30 days.
+
+Settings lets you switch between cloud mode and local-only mode without signing in. These have separate progress. Local-only progress is not uploaded automatically. Use Sync local progress to cloud (or beebright sync) to import it intentionally. Answer IDs prevent double counting. Importing a saved session replaces the cloud resume point after the button asks you to confirm.
+
+Run beebright logout on shared computers. Credentials are excluded from backups. Cloud-mode changes are cached per account and retry while the app is open; wait for pending errors to clear before continuing on another device. If the app is closed while offline, reopen it to retry.
+
+Classrooms are available to every signed-in account. Teachers share their join code; students choose a display name and join voluntarily. Teachers see only members’ reported BeeBright screen, practice mode, level, session answer totals, score, source and last report time. This is self-reported activity, not exam supervision. Local-only activity is not collected. Students can leave, teachers can remove them, rotate codes or delete a classroom.
