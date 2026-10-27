@@ -1,5 +1,12 @@
 name: Account browser regression
-on: [push, pull_request]
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths-ignore: [update-manifest.json]
+concurrency:
+  group: account-ui-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
