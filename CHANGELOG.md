@@ -1,3 +1,12 @@
+# BeeBright Local 2.7.5
+
+- Optional browser-approved account login: beebright login, logout and sync. Cloud saving is on by default after login.
+- Separate account caches and local-only profiles; offline cloud changes retry without uploading private local-only practice.
+- Explicit local-to-cloud import merges answer IDs and favorites and confirms replacing the resume point.
+- Create and join classrooms; teachers see current shared activity and can remove students or rotate join codes. Local-only activity is never reported.
+- Desktop credentials expire after 30 days and stay out of browser storage and backups.
+- Updated Vite to fix reported development-server vulnerabilities. All twelve racing tracks retained.
+
 # BeeBright Local 2.7.4
 
 - Gentle off-road resistance gradually lowers speed. Full-throttle speed settles about 11% below asphalt speed, without the old instant slowdown.

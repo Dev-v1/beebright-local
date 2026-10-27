@@ -12,6 +12,9 @@ function Get-BeePackage {
 if ($Command -eq 'help') {
     Write-Output @'
 BeeBright commands
+  beebright login           Sign in through your browser; enable cloud saving.
+  beebright logout          Sign out and use local-only progress.
+  beebright sync            Import local progress into your signed-in account.
   beebright                 Open local spelling practice; check for updates first.
   beebright update          Update the app and private Python runtime.
   beebright web             Open https://beebright.vercel.app/.
@@ -71,7 +74,7 @@ if ($Version) {
     Write-Output "BeeBright $($Release.version)"
     return
 }
-$Features = @('daily', 'review', 'compete', 'doctor', 'stats', 'profile', 'backup', 'restore', 'sprint', 'lists', 'practice', 'audio', 'origins', 'pairs', 'favorites', 'worksheet', 'remind', 'achievements', 'duel', 'changelog')
+$Features = @('daily', 'review', 'compete', 'doctor', 'stats', 'profile', 'backup', 'restore', 'sprint', 'lists', 'practice', 'audio', 'origins', 'pairs', 'favorites', 'worksheet', 'remind', 'achievements', 'duel', 'changelog', 'login', 'logout', 'sync')
 $PrivateGame = ($Command -in @('test', 'check')) -and ($Target -eq 'game') -and (-not $ExtraArguments)
 if ($Command -in $Features -or $PrivateGame) {
     $ErrorActionPreference = 'Stop'
