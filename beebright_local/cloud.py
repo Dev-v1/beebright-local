@@ -1,6 +1,7 @@
 """Optional cloud account; offline data never uploads until explicitly imported."""
 from __future__ import annotations
 import json
+import secrets
 import threading
 import time
 import urllib.error
@@ -115,33 +116,47 @@ def start_worker():
             try:
                 with _lock:
                     c = config()
-                    if c.get('mode') == 'cloud' and c.get('user_id'):
-                        flush(c)
+                if c.get('mode') == 'cloud' and c.get('user_id'):
+                    flush(c)
             except Exception:
                 pass  # Error is kept in status; the durable cache remains queued.
     threading.Thread(target=run,daemon=True).start()
 
 
+def _status_error(c, message):
+    path = c.get('_path',studio.profile_path('account-private.json'))
+    current = engine.read_json(path,{}) or {}
+    if current.get('token') == c.get('token'):
+        current['error'] = message
+        save_config(current,path)
+
+
 def flush(c):
-    state = engine.read_json(cache_name(c,'pending'),{}) or {}
+    # Network requests must not hold the cache lock: cloud-mode practice still
+    # saves immediately while disconnected. Generation IDs protect newer edits.
+    with _lock:
+        state = engine.read_json(cache_name(c,'pending'),{}) or {}
+        snapshots = {name:engine.read_json(cache_name(c,name),None if name=='progress' else {})
+                     for name in ('studio','progress') if name in state}
     try:
-        if state.get('studio'):
-            data = engine.read_json(cache_name(c,'studio'),{}) or {}
-            result = remote('/api/account/studio','PUT',{'data':data,'merge_favorites':not engine.read_json(cache_name(c,'studio-loaded'),False)},c['token'])
-            engine.save_json(cache_name(c,'studio'),result)
-            state.pop('studio',None)
-            engine.save_json(cache_name(c,'pending'),state)
-        if 'progress' in state:
-            session = engine.read_json(cache_name(c,'progress'),None)
-            saved = remote('/api/account/progress','PUT',{'session':session,'base_revision':engine.read_json(cache_name(c,'revision'),None)},c['token'])
-            engine.save_json(cache_name(c,'revision'),saved['revision'])
-            state.pop('progress',None)
-            engine.save_json(cache_name(c,'pending'),state)
-        c['error'] = ''
-        save_config(c)
+        for name,value in snapshots.items():
+            if name == 'studio':
+                result = remote('/api/account/studio','PUT',
+                    {'data':value or {},'merge_favorites':not engine.read_json(cache_name(c,'studio-loaded'),False)},c['token'])
+            else:
+                result = remote('/api/account/progress','PUT',
+                    {'session':value,'base_revision':engine.read_json(cache_name(c,'revision'),None)},c['token'])
+            with _lock:
+                pending = engine.read_json(cache_name(c,'pending'),{}) or {}
+                if name == 'progress':
+                    engine.save_json(cache_name(c,'revision'),result['revision'])
+                if pending.get(name) == state[name]:
+                    if name == 'studio':engine.save_json(cache_name(c,name),result)
+                    pending.pop(name,None)
+                    engine.save_json(cache_name(c,'pending'),pending)
+        with _lock:_status_error(c,'')
     except ValueError as exc:
-        c['error'] = str(exc)
-        save_config(c)
+        with _lock:_status_error(c,str(exc))
         raise
 
 
@@ -193,7 +208,7 @@ def request(path, method='GET', payload=None):
             if method in ('PUT','DELETE'):
                 value = None if method == 'DELETE' else payload.get('session') if name == 'progress' else payload
                 engine.save_json(cache_name(c,name),value)
-                pending[name] = True
+                pending[name] = secrets.token_hex(16)
                 engine.save_json(cache_name(c,'pending'),pending)
             elif method == 'GET' and name not in pending:
                 try:
