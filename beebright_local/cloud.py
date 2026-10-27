@@ -67,7 +67,12 @@ def login():
             return status()
         old = config()
         if old.get('user_id'):
-            return status()
+            try:
+                remote('/api/account/me',token=old['token'])
+                return status()
+            except ValueError as exc:
+                if 'expired' not in str(exc).lower() and 'invalid' not in str(exc).lower():
+                    raise
         pending = remote('/api/devices/start','POST')
         save_config({'mode':'local','pending':True,'code':pending['code']},path)
         _login_threads.add(path)
