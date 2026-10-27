@@ -165,3 +165,5 @@
 
 - Private Python 3.15 runtime, offline help, and one-command uninstall.
 
+
+Cloud save safeguards: stale resume points raise conflicts instead of overwriting another device. Explicit imports flush queued account changes first. Background saves stay pinned to the original local profile.

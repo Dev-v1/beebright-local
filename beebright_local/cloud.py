@@ -166,6 +166,8 @@ def request(path, method='GET', payload=None):
         if not c.get('user_id'):
             raise ValueError('Run beebright login to connect your account.')
         if path == '/api/account/sync' and method == 'PUT':
+            # Flush account-cache changes first so an import cannot discard queued cloud answers.
+            flush(c)
             # Explicit import is the ONLY path that reads local-only progress for upload.
             prefix = c.get('_path',studio.profile_path('account-private.json')).removesuffix('account-private.json')
             local_studio = engine.read_json(prefix+'studio.json',{}) or {}
@@ -173,8 +175,10 @@ def request(path, method='GET', payload=None):
             engine.save_json(cache_name(c,'studio'),result)
             session = engine.read_json(prefix+'progress.json',None)
             if session:
-                remote('/api/progress','PUT',{'session':session},c['token'])
+                latest = remote('/api/account/progress',token=c['token'])
+                saved = remote('/api/account/progress','PUT',{'session':session,'base_revision':latest['revision']},c['token'])
                 engine.save_json(cache_name(c,'progress'),session)
+                engine.save_json(cache_name(c,'revision'),saved['revision'])
             return {'synced':True}
         if path == '/api/account/resolve' and method == 'PUT':
             latest = remote('/api/account/progress',token=c['token'])

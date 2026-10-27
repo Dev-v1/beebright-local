@@ -50,11 +50,11 @@ class CloudTests(unittest.TestCase):
         studio.save('progress.json',local)
         studio.save('studio.json',{'events':[],'favorites':['bee']})
         cloud.save_config({**self.account,'mode':'local'})
-        self.remote_mock.return_value={'events':[],'favorites':['bee']}
+        self.remote_mock.return_value={'events':[],'favorites':['bee'],'revision':'new'}
         cloud.request('/api/account/sync','PUT')
         self.assertEqual(studio.read('progress.json'),local)
         self.assertEqual(cloud.status()['mode'],'local')
-        self.remote_mock.assert_any_call('/api/progress','PUT',{'session':local},'bb_test')
+        self.remote_mock.assert_any_call('/api/account/progress','PUT',{'session':local,'base_revision':'new'},'bb_test')
         self.assertEqual(cloud.request('/api/account/status')['mode'],'local')
 
     def test_accounts_and_backups_do_not_leak_credentials_or_caches(self):
@@ -98,3 +98,20 @@ class CloudTests(unittest.TestCase):
         self.assertEqual(cloud.status()['mode'],'local')
         self.assertTrue(cloud.cache_name(original,'progress').startswith('cloud/'))
         self.assertEqual(engine.read_json('account-private.json')['user_id'],'user_test')
+
+    def test_import_does_not_discard_queued_cloud_answers(self):
+        cloud.save_config(self.account)
+        cloud.request('/api/studio','PUT',{'events':[{'id':'cloud','word':'bee','correct':True,'at':1}]})
+        cloud.request('/api/account/mode','PUT',{'mode':'local'})
+        studio.save('studio.json',{'events':[{'id':'offline','word':'sky','correct':True,'at':2}]})
+        server={}
+        def save(path,method='GET',payload=None,token=None):
+            if path=='/api/account/studio':
+                for event in payload['data']['events']:server[event['id']]=event
+                return {'events':list(server.values())}
+            raise ValueError('Unexpected path')
+        self.remote_mock.side_effect=save
+        cloud.request('/api/account/sync','PUT')
+        self.assertEqual(set(server),{'cloud','offline'})
+        self.assertEqual(len(engine.read_json(cloud.cache_name(cloud.config(),'studio'))['events']),2)
+        self.assertEqual(engine.read_json(cloud.cache_name(cloud.config(),'pending')),{})
