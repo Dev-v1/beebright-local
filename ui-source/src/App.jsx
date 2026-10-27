@@ -60,7 +60,7 @@ function labelForLevel(key) {
   return ({ one_bee: "One Bee", two_bee: "Two Bee", three_bee: "Three Bee", random: "Random" })[key] || key;
 }
 
-function App({ onClassrooms, cloudEnabled=false, userId, getToken, isAdmin, onOpenSettings, onRequestList, localMode = false, inactive = false }) {
+function App({ onFlushReady, onClassrooms, cloudEnabled=false, userId, getToken, isAdmin, onOpenSettings, onRequestList, localMode = false, inactive = false }) {
   const studio = useStudio(userId, localMode);
   const [feature, setFeature] = useState(() => localMode ? new URLSearchParams(window.location.search).get('feature') || '' : '');
   const [practiceContext, setPracticeContext] = useState(null);
@@ -100,6 +100,7 @@ function App({ onClassrooms, cloudEnabled=false, userId, getToken, isAdmin, onOp
   const sessionKey = `${SESSION_KEY}:${userId}`;
 
   useActivity({enabled: !localMode || Boolean(cloudEnabled),getToken,screen,mode,level,answered:index,correct,source:localMode?"local":"web",inactive});
+  useEffect(()=>{onFlushReady?.(()=>Promise.all([studio.flush(),saveQueueRef.current]));},[onFlushReady,studio.flush]);
   const current = words[index];
   const setSize = practiceSetSize(wordListId);
   const currentWord = current?.word || "";
@@ -155,6 +156,7 @@ function App({ onClassrooms, cloudEnabled=false, userId, getToken, isAdmin, onOp
 
   useEffect(() => {
     if (!["practice", "break"].includes(screen) || !words.length) return;
+    let stoppedSaving=false;
     const session = {
       mode, level, wordListId, setOffset, shuffleSeed, words: words.map(({hint, ...word}) => level === "pairs" ? {...word, hint} : word), index, correct, streak, bestStreak, answer, feedback, revealed, practiceContext, duelScore, breakState,
     };
@@ -164,13 +166,15 @@ function App({ onClassrooms, cloudEnabled=false, userId, getToken, isAdmin, onOp
     window.clearTimeout(saveTimerRef.current);
     const persist = () => {
       saveQueueRef.current = saveQueueRef.current.catch(() => {}).then(async () => {
+        if(stoppedSaving)return;
         const token = await getToken();
+        if(stoppedSaving)return;
         if (token) await saveProgress(token, session);
       }).catch(() => {});
     };
     if (localMode) persist();
     else saveTimerRef.current = window.setTimeout(persist, 350);
-    return () => window.clearTimeout(saveTimerRef.current);
+    return () => {stoppedSaving=true;window.clearTimeout(saveTimerRef.current);};
   }, [screen, mode, level, wordListId, setOffset, shuffleSeed, words, index, correct, streak, bestStreak, answer, feedback, revealed, getToken, sessionKey, localMode, practiceContext, duelScore, breakState]);
 
   useEffect(() => {

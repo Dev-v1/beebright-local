@@ -40,9 +40,10 @@ class CloudTests(unittest.TestCase):
         with self.assertRaises(ValueError): cloud.flush(cloud.config())
         self.assertEqual(cloud.request('/api/progress')['session'],session)
         self.remote_mock.side_effect=None
+        self.remote_mock.return_value={"revision":"new"}
         cloud.flush(cloud.config())
         self.assertEqual(engine.read_json(cloud.cache_name(self.account,'pending')),{})
-        self.remote_mock.assert_called_with('/api/progress','PUT',{'session':session},'bb_test')
+        self.remote_mock.assert_called_with('/api/account/progress','PUT',{'session':session,'base_revision':None},'bb_test')
 
     def test_import_is_explicit_and_leaves_local_progress_untouched(self):
         local={'words':[{'word':'bee'}],'index':4}
@@ -85,3 +86,15 @@ class CloudTests(unittest.TestCase):
             captured[0]()
         self.assertEqual(cloud.status()['mode'],'cloud')
         self.assertEqual(cloud.status()['user_id'],'user_new')
+
+    def test_background_save_stays_with_the_original_local_profile(self):
+        cloud.save_config(self.account)
+        original=cloud.config()
+        studio.change_profile('add','Second player')
+        cloud.save_config({'mode':'local'})
+        self.assertEqual(cloud.status()['mode'],'local')
+        original['error']='retry'
+        cloud.save_config(original)
+        self.assertEqual(cloud.status()['mode'],'local')
+        self.assertTrue(cloud.cache_name(original,'progress').startswith('cloud/'))
+        self.assertEqual(engine.read_json('account-private.json')['user_id'],'user_test')

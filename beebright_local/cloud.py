@@ -35,12 +35,13 @@ def remote(path, method='GET', payload=None, token=None):
 
 
 def config():
-    return engine.read_json(studio.profile_path('account-private.json'), {}) or {}
+    path = studio.profile_path('account-private.json')
+    return {**(engine.read_json(path,{}) or {}),'_path':path}
 
 
 def save_config(value, path=None):
-    name = path or studio.profile_path('account-private.json')
-    engine.save_json(name, value)
+    name = path or value.get('_path') or studio.profile_path('account-private.json')
+    engine.save_json(name, {k:v for k,v in value.items() if k != '_path'})
     # Tokens never enter browser storage or portable backups.
     (engine.USER_DATA / name).chmod(0o600)
 
@@ -55,7 +56,8 @@ def status():
 def cache_name(c, name):
     import hashlib
     account = hashlib.sha256(c['user_id'].encode()).hexdigest()
-    return studio.profile_path('cloud/'+account+'/'+name+'.json')
+    prefix = c.get('_path',studio.profile_path('account-private.json')).removesuffix('account-private.json')
+    return prefix+'cloud/'+account+'/'+name+'.json'
 
 
 def login():
@@ -126,7 +128,8 @@ def flush(c):
             engine.save_json(cache_name(c,'pending'),state)
         if 'progress' in state:
             session = engine.read_json(cache_name(c,'progress'),None)
-            remote('/api/progress','PUT' if session else 'DELETE',{'session':session} if session else None,c['token'])
+            saved = remote('/api/account/progress','PUT',{'session':session,'base_revision':engine.read_json(cache_name(c,'revision'),None)},c['token'])
+            engine.save_json(cache_name(c,'revision'),saved['revision'])
             state.pop('progress',None)
             engine.save_json(cache_name(c,'pending'),state)
         c['error'] = ''
@@ -159,14 +162,20 @@ def request(path, method='GET', payload=None):
             raise ValueError('Run beebright login to connect your account.')
         if path == '/api/account/sync' and method == 'PUT':
             # Explicit import is the ONLY path that reads local-only progress for upload.
-            local_studio = studio.read('studio.json',{}) or {}
+            prefix = c.get('_path',studio.profile_path('account-private.json')).removesuffix('account-private.json')
+            local_studio = engine.read_json(prefix+'studio.json',{}) or {}
             result = remote('/api/account/studio','PUT',{'data':local_studio,'merge_favorites':True},c['token'])
             engine.save_json(cache_name(c,'studio'),result)
-            session = studio.read('progress.json',None)
+            session = engine.read_json(prefix+'progress.json',None)
             if session:
                 remote('/api/progress','PUT',{'session':session},c['token'])
                 engine.save_json(cache_name(c,'progress'),session)
             return {'synced':True}
+        if path == '/api/account/resolve' and method == 'PUT':
+            latest = remote('/api/account/progress',token=c['token'])
+            engine.save_json(cache_name(c,'revision'),latest['revision'])
+            flush(c)
+            return status()
         if c.get('mode') != 'cloud':
             raise ValueError('Switch to cloud mode to use classrooms. Local-only activity is private.')
         if path in ('/api/progress','/api/studio'):
@@ -179,7 +188,8 @@ def request(path, method='GET', payload=None):
                 engine.save_json(cache_name(c,'pending'),pending)
             elif method == 'GET' and name not in pending:
                 try:
-                    value = remote('/api/progress' if name == 'progress' else '/api/account/studio',token=c['token'])
+                    value = remote('/api/account/progress' if name == 'progress' else '/api/account/studio',token=c['token'])
+                    if name == 'progress': engine.save_json(cache_name(c,'revision'),value['revision'])
                     engine.save_json(cache_name(c,name),value.get('session') if name == 'progress' else value)
                     c['error']='';save_config(c)
                 except ValueError as exc:
