@@ -99,7 +99,7 @@ function App({ onFlushReady, onClassrooms, cloudEnabled=false, userId, getToken,
   const saveQueueRef = useRef(Promise.resolve());
   const sessionKey = `${SESSION_KEY}:${userId}`;
 
-  useActivity({enabled: !localMode || Boolean(cloudEnabled),getToken,screen,mode,level,answered:index,correct,source:localMode?"local":"web",inactive});
+  useActivity({enabled: !localMode || Boolean(cloudEnabled),getToken,screen,mode,level,answered:index+(feedback?1:0),correct,source:localMode?"local":"web",inactive});
   useEffect(()=>{onFlushReady?.(()=>Promise.all([studio.flush(),saveQueueRef.current]));},[onFlushReady,studio.flush]);
   const current = words[index];
   const setSize = practiceSetSize(wordListId);
