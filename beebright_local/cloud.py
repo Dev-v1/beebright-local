@@ -1,12 +1,15 @@
 """Optional cloud account; offline data never uploads until explicitly imported."""
 from __future__ import annotations
 import json
+import os
+import tempfile
 import secrets
 import threading
 import time
 import urllib.error
 import urllib.request
 import webbrowser
+from pathlib import Path
 from . import engine, studio
 
 API = 'https://beebright-api.onrender.com'
@@ -42,9 +45,20 @@ def config():
 
 def save_config(value, path=None):
     name = path or value.get('_path') or studio.profile_path('account-private.json')
-    engine.save_json(name, {k:v for k,v in value.items() if k != '_path'})
-    # Tokens never enter browser storage or portable backups.
-    (engine.USER_DATA / name).chmod(0o600)
+    target = engine.USER_DATA / name
+    target.parent.mkdir(parents=True,exist_ok=True)
+    # mkstemp creates the credential file with owner-only permissions from the
+    # first byte, including the temporary file used for an atomic replacement.
+    fd, temporary = tempfile.mkstemp(prefix=target.name+'.',suffix='.tmp',dir=target.parent)
+    try:
+        with os.fdopen(fd,'w',encoding='utf-8') as out:
+            json.dump({k:v for k,v in value.items() if k != '_path'},out)
+            out.flush()
+            os.fsync(out.fileno())
+        Path(temporary).replace(target)
+        target.chmod(0o600)
+    finally:
+        Path(temporary).unlink(missing_ok=True)
 
 
 def status():
