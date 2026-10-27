@@ -17,7 +17,7 @@ BeeBright commands
   beebright sync            Import local progress into your signed-in account.
   beebright                 Open local spelling practice; check for updates first.
   beebright update          Update the app and private Python runtime.
-  beebright web             Open https://beebright.vercel.app/.
+  beebright web             Open https://beebright.app/.
   beebright create web      Open local practice in a browser; Ctrl+C stops it.
   beebright -v              Show the installed version (also --v, --version, -version).
   beebright help            Show this command list without internet access.
@@ -91,7 +91,7 @@ if ($Command -notin @('', 'update', 'web', 'create') -or ($Command -eq 'create' 
 $UpdateOnly = $Command -eq 'update'
 if ($UpdateOnly) { $SkipLaunch = $true }
 $ErrorActionPreference = 'Stop'
-if ($Command -eq 'web') { Start-Process 'https://beebright.vercel.app/'; return }
+if ($Command -eq 'web') { Start-Process 'https://beebright.app/'; return }
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 $BeeRoot = Join-Path $env:LOCALAPPDATA 'BeeBright'
 $Current = Get-BeePackage
