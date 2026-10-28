@@ -22,7 +22,7 @@
 .classrooms-page .classroom-code-input { letter-spacing:.13em; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
 .classroom-tip { display:flex; gap:11px; align-items:flex-start; border-radius:15px; padding:15px; background:var(--cream); }
 .classroom-tip svg { flex-shrink:0; margin-top:2px; }
-.classrooms-page .classroom-button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; max-width:100%; padding:11px 19px; border:1px solid transparent; border-radius:999px; font-family:inherit; font-size:13px; font-weight:600; line-height:1.45; text-align:center; text-decoration:none; cursor:pointer; transition:box-shadow .15s,background .15s; }
+.classrooms-page .classroom-button { display:inline-flex; align-items:center; justify-content:center; gap:8px; min-height:44px; max-width:100%; padding:11px 19px; border:1px solid transparent; border-radius:999px; font-family:inherit; font-size:13px; font-weight:600; line-height:1.45; text-align:center; text-decoration:none; cursor:pointer; transition:box-shadow .15s; }
 .classroom-button svg { flex-shrink:0; }
 .classrooms-page .classroom-primary { background:var(--yellow); color:#332c18; border-color:var(--yellow); }
 .classrooms-page .classroom-secondary { background:var(--ink); color:var(--paper); border-color:var(--ink); }
