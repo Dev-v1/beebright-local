@@ -21,6 +21,12 @@ def fake_remote(path,method='GET',payload=None,token=None):
         if method=='POST':
             rooms.append({'id':'room','name':payload['name'],'teacher':True,'code':'ABCDEFGH'})
         return rooms if method=='GET' else rooms[-1]
+    if path=='/api/classrooms/join':
+        if payload['code']!='QRST2345' or payload['display_name']!='UI student':
+            raise ValueError('Join form did not send its normalized code and display name.')
+        room={'id':'joined-room','name':'Spelling Club','teacher':False,'code':None}
+        rooms.append(room)
+        return {'joined':True}
     if path.endswith('/students'):return []
     if path=='/api/activity':return {'saved':True}
     if path=='/api/devices/current':return {'signed_out':True}

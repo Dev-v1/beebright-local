@@ -1,6 +1,7 @@
 const {chromium}=require(process.env.BEE_PLAYWRIGHT_MODULE || "../.ui-test/node_modules/playwright");
 const {spawn}=require('node:child_process');
 const assert=require('node:assert/strict');
+const fs=require('node:fs');
 (async()=>{
  const child=spawn(process.env.PYTHON || 'python',['tools/test_cloud_ui_fixture.py'],{cwd:process.cwd(),env:process.env,windowsHide:true});
  let browser;
@@ -20,12 +21,24 @@ const assert=require('node:assert/strict');
   await page.waitForFunction(()=>document.querySelector('[role="switch"]')?.getAttribute('aria-checked')==='true');
   await page.getByRole('button',{name:'Back to practice',exact:true}).click();
   await page.getByRole('button',{name:'Classrooms',exact:true}).click();
+  fs.mkdirSync('test-output/classrooms',{recursive:true});
+  await page.screenshot({path:'test-output/classrooms/desktop.png',fullPage:true});
   await page.getByLabel('Classroom name',{exact:true}).fill('UI spelling classroom');
   await page.getByRole('button',{name:'Create classroom',exact:true}).click();
   await page.getByRole('heading',{name:'UI spelling classroom',exact:true}).waitFor();
   await page.getByRole('button',{name:'View students',exact:true}).click();
   await page.getByText('No students have joined.',{exact:true}).waitFor();
+  await page.setViewportSize({width:390,height:844});
+  await page.getByLabel('Classroom code',{exact:true}).fill('qrst2345');
+  await page.getByLabel('Your classroom name',{exact:true}).fill('UI student');
+  await page.getByRole('button',{name:'Join and share activity',exact:true}).click();
+  await page.getByRole('heading',{name:'Spelling Club',exact:true}).waitFor();
+  assert.equal(await page.getByLabel('Classroom code',{exact:true}).inputValue(),'');
+  assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),true,'Mobile classrooms overflow horizontally');
+  await page.screenshot({path:'test-output/classrooms/mobile.png',fullPage:true});
+  await page.evaluate(()=>document.documentElement.dataset.theme='dark');
+  await page.screenshot({path:'test-output/classrooms/mobile-dark.png',fullPage:true});
   assert.deepEqual(errors,[]);
-  console.log('Local browser login approval, default cloud mode, mode switching and classroom creation passed without JavaScript errors.');
+  console.log('Local browser login approval, default cloud mode, mode switching and classroom creation/joining on desktop and mobile passed without JavaScript errors.');
  }finally{await browser?.close();child.kill();}
 })().catch(e=>{console.error(e);process.exitCode=1});

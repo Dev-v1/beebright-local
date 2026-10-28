@@ -1,3 +1,8 @@
+# BeeBright Local 2.7.8
+
+- Redesign classrooms with rounded create/join cards, spacious labelled fields, pill buttons and clearer teacher/student classroom cards.
+- Add a responsive mobile layout, readable sharing information and a tidier student activity table, with keyboard focus and dark-mode styling.
+
 # BeeBright Local 2.7.7 (polished)
 
 - Round account and saving action buttons into consistent pill shapes, with roomier padding and clear keyboard focus.
