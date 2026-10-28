@@ -26,3 +26,11 @@ jobs:
       - run: npm install --prefix .ui-test --no-package-lock playwright@1.64.1
       - run: ./.ui-test/node_modules/.bin/playwright install --with-deps chromium
       - run: node tools/test_account_ui.cjs
+      - name: Save classroom UI views
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: classroom-ui-views
+          path: test-output/classrooms
+          if-no-files-found: ignore
+          retention-days: 3
