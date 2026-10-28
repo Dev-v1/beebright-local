@@ -1,5 +1,5 @@
 .classrooms-page { color:var(--ink); }
-.classrooms-page .classroom-topbar { gap:16px; flex-wrap:wrap; }
+.classrooms-page .classroom-topbar { gap:16px; flex-wrap:wrap; height:auto; min-height:76px; padding-block:16px; }
 .classroom-wordmark { display:flex; align-items:center; gap:10px; font-weight:700; font-size:19px; }
 .classroom-content { width:min(100%,1080px); margin:0 auto; padding:48px 28px 72px; }
 .classroom-intro { max-width:680px; margin-bottom:32px; }
@@ -16,7 +16,7 @@
 .classroom-icon-create { background:var(--yellow); color:#514314; }
 .classroom-icon-join { background:#e9edff; color:#4656a5; }
 .classrooms-page label { display:flex; flex-direction:column; gap:9px; min-width:0; font-size:13px; font-weight:600; }
-.classrooms-page input { box-sizing:border-box; width:100%; min-width:0; min-height:48px; border:1px solid var(--line); border-radius:15px; padding:13px 15px; background:var(--cream); color:var(--ink); font-family:inherit; font-size:15px; font-weight:400; line-height:1.4; transition:border-color .15s,box-shadow .15s; }
+.classrooms-page input { box-sizing:border-box; width:100%; min-width:0; min-height:48px; border:1px solid var(--line); border-radius:15px; padding:13px 15px; background:var(--cream); color:var(--ink); font-family:inherit; font-size:16px; font-weight:400; line-height:1.4; transition:border-color .15s,box-shadow .15s; }
 .classrooms-page input::placeholder { color:var(--muted); opacity:.8; }
 .classrooms-page input:focus-visible { outline:2px solid var(--ink); outline-offset:3px; }
 .classrooms-page .classroom-code-input { letter-spacing:.13em; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; }
