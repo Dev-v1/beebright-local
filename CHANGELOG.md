@@ -1,3 +1,7 @@
+# BeeBright Local 2.7.7 (polished)
+
+- Round account and saving action buttons into consistent pill shapes, with roomier padding and clear keyboard focus.
+
 # BeeBright Local 2.7.7
 
 - Repair command discovery for macOS bash login shells and zsh with a custom ZDOTDIR; configure interactive and login startup files without duplicating PATH entries.
