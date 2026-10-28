@@ -9,11 +9,13 @@ import time
 import urllib.error
 import urllib.request
 import webbrowser
+from contextlib import contextmanager
 from pathlib import Path
 from . import engine, studio
 
 API = 'https://beebright-api.onrender.com'
 _lock = threading.RLock()
+_upload_lock = threading.Lock()
 _login_threads = set()
 _worker_started = False
 
@@ -145,7 +147,24 @@ def _status_error(c, message):
         save_config(current,path)
 
 
+@contextmanager
+def upload_guard():
+    # Never wait while holding _lock: an active upload needs it to commit its
+    # result. Manual actions can retry; the worker retries on its next tick.
+    if not _upload_lock.acquire(blocking=False):
+        raise ValueError('Cloud sync is already in progress. Try again shortly.')
+    try:
+        yield
+    finally:
+        _upload_lock.release()
+
+
 def flush(c):
+    with upload_guard():
+        _flush(c)
+
+
+def _flush(c):
     # Network requests must not hold the cache lock: cloud-mode practice still
     # saves immediately while disconnected. Generation IDs protect newer edits.
     with _lock:
@@ -195,25 +214,27 @@ def request(path, method='GET', payload=None):
         if not c.get('user_id'):
             raise ValueError('Run beebright login to connect your account.')
         if path == '/api/account/sync' and method == 'PUT':
-            # Flush account-cache changes first so an import cannot discard queued cloud answers.
-            flush(c)
-            # Explicit import is the ONLY path that reads local-only progress for upload.
-            prefix = c.get('_path',studio.profile_path('account-private.json')).removesuffix('account-private.json')
-            local_studio = engine.read_json(prefix+'studio.json',{}) or {}
-            result = remote('/api/account/studio','PUT',{'data':local_studio,'merge_favorites':True},c['token'])
-            engine.save_json(cache_name(c,'studio'),result)
-            session = engine.read_json(prefix+'progress.json',None)
-            if session:
-                latest = remote('/api/account/progress',token=c['token'])
-                saved = remote('/api/account/progress','PUT',{'session':session,'base_revision':latest['revision']},c['token'])
-                engine.save_json(cache_name(c,'progress'),session)
-                engine.save_json(cache_name(c,'revision'),saved['revision'])
-            return {'synced':True}
+            with upload_guard():
+                # Flush account-cache changes first so an import cannot discard queued cloud answers.
+                _flush(c)
+                # Explicit import is the ONLY path that reads local-only progress for upload.
+                prefix = c.get('_path',studio.profile_path('account-private.json')).removesuffix('account-private.json')
+                local_studio = engine.read_json(prefix+'studio.json',{}) or {}
+                result = remote('/api/account/studio','PUT',{'data':local_studio,'merge_favorites':True},c['token'])
+                engine.save_json(cache_name(c,'studio'),result)
+                session = engine.read_json(prefix+'progress.json',None)
+                if session:
+                    latest = remote('/api/account/progress',token=c['token'])
+                    saved = remote('/api/account/progress','PUT',{'session':session,'base_revision':latest['revision']},c['token'])
+                    engine.save_json(cache_name(c,'progress'),session)
+                    engine.save_json(cache_name(c,'revision'),saved['revision'])
+                return {'synced':True}
         if path == '/api/account/resolve' and method == 'PUT':
-            latest = remote('/api/account/progress',token=c['token'])
-            engine.save_json(cache_name(c,'revision'),latest['revision'])
-            flush(c)
-            return status()
+            with upload_guard():
+                latest = remote('/api/account/progress',token=c['token'])
+                engine.save_json(cache_name(c,'revision'),latest['revision'])
+                _flush(c)
+                return status()
         if c.get('mode') != 'cloud':
             raise ValueError('Switch to cloud mode to use classrooms. Local-only activity is private.')
         if path in ('/api/progress','/api/studio'):
