@@ -11,6 +11,17 @@ concurrency:
   group: local-release-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
+  installer:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.15'
+      - run: python -m unittest test_installer -v
   test:
     strategy:
       matrix:
@@ -54,7 +65,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 3
   publish:
-    needs: test
+    needs: [test, installer]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     permissions:

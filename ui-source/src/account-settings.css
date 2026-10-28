@@ -1,0 +1,13 @@
+.account-settings .saving-row { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:18px 0; border-bottom:1px solid var(--border,#ddd); }
+.account-settings .saving-row h3 { margin:0 0 6px; font-size:16px; }
+.account-settings .saving-row p { margin:0; line-height:1.5; }
+.account-settings .saving-row > div { flex:1; }
+.account-settings button.apple-switch { position:relative; display:block; flex:0 0 52px; width:52px; height:32px; min-height:32px; padding:0; margin:0; border:0; border-radius:999px; background:#73777c; cursor:pointer; transition:background .18s ease; }
+.account-settings .apple-switch[aria-checked="true"] { background:#248a3d; }
+.account-settings .switch-thumb { position:absolute; top:3px; left:3px; width:26px; height:26px; border-radius:50%; background:#fff; box-shadow:0 1px 4px #0004; transition:transform .18s ease; }
+.account-settings .apple-switch[aria-checked="true"] .switch-thumb { transform:translateX(20px); }
+.account-settings .apple-switch:focus-visible { outline:3px solid #007aff; outline-offset:4px; }
+.account-settings .apple-switch:disabled { opacity:.5; cursor:wait; }
+.account-signin { display:grid; gap:12px; }
+@media(prefers-reduced-motion:reduce) { .account-settings .apple-switch,.account-settings .switch-thumb { transition:none; } }
+@media(max-width:600px) { .account-settings .saving-row { gap:14px; flex-wrap:wrap; } }

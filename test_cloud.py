@@ -82,7 +82,8 @@ class CloudTests(unittest.TestCase):
             initial=cloud.login()
             self.assertEqual(initial['mode'],'local')
             self.assertTrue(initial['pending'])
-            browser.assert_called_once()
+            browser.assert_called_once_with('https://www.beebright.app/sign-in?connect=ABCDEFGH')
+            self.assertEqual(initial['login_url'],'https://www.beebright.app/sign-in?connect=ABCDEFGH')
             captured[0]()
         self.assertEqual(cloud.status()['mode'],'cloud')
         self.assertEqual(cloud.status()['user_id'],'user_new')
@@ -182,3 +183,12 @@ class CloudTests(unittest.TestCase):
         self.remote_mock.assert_called_with('/api/account/progress','PUT',
             {'session':newer,'base_revision':'after-upload'},account['token'])
         self.assertEqual(engine.read_json(cloud.cache_name(account,'pending')),{})
+
+    def test_login_reuses_valid_account_and_enables_cloud_saving(self):
+        cloud.save_config({**self.account,'mode':'local'})
+        self.remote_mock.return_value={'user_id':self.account['user_id']}
+        with patch.object(cloud.webbrowser,'open') as browser:
+            result=cloud.login()
+            browser.assert_not_called()
+        self.assertEqual(result['mode'],'cloud')
+        self.assertTrue(result['signed_in'])

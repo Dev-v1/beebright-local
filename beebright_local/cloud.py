@@ -67,7 +67,8 @@ def status():
     c = config()
     return {'signed_in':bool(c.get('user_id')), 'user_id':c.get('user_id'),
             'mode':c.get('mode','local'), 'error':c.get('error',''),
-            'pending':bool(c.get('pending')), 'code':c.get('code','') if c.get('pending') else ''}
+            'pending':bool(c.get('pending')), 'code':c.get('code','') if c.get('pending') else '',
+            'login_url':c.get('login_url','') if c.get('pending') else ''}
 
 
 def cache_name(c, name):
@@ -86,12 +87,14 @@ def login():
         if old.get('user_id'):
             try:
                 remote('/api/account/me',token=old['token'])
+                old['mode']='cloud';old['error']='';save_config(old,path)
                 return status()
             except ValueError as exc:
                 if 'expired' not in str(exc).lower() and 'invalid' not in str(exc).lower():
                     raise
         pending = remote('/api/devices/start','POST')
-        save_config({'mode':'local','pending':True,'code':pending['code']},path)
+        login_url = 'https://www.beebright.app/sign-in?connect='+pending['code']
+        save_config({'mode':'local','pending':True,'code':pending['code'],'login_url':login_url},path)
         _login_threads.add(path)
     def poll():
         try:
@@ -117,7 +120,7 @@ def login():
         finally:
             with _lock: _login_threads.discard(path)
     threading.Thread(target=poll,daemon=True).start()
-    webbrowser.open(pending['url'])
+    webbrowser.open(login_url)
     return status()
 
 
