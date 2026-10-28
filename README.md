@@ -1,13 +1,13 @@
 # BeeBright Local
 
-A native desktop spelling practice app maintained, built and released entirely in this repository. No account, admin panel, or cloud progress database. Practice connects only to a server on this computer. Includes Flash Cards, Fill in the Blank, Multiple Choice, and Type the Word, with definitions, word origins, and sentences that hide the target spelling. Speech uses a voice installed on your computer.
+A desktop and local browser spelling practice app maintained, built and released entirely in this repository. Local-only practice needs no account. Optional account login enables cloud progress and classrooms. Includes Flash Cards, Fill in the Blank, Multiple Choice, and Type the Word, with definitions, word origins, and sentences that hide the target spelling. Speech uses a voice installed on your computer.
 
 ## Windows install
 
 In PowerShell:
 
 ```powershell
-irm https://beebright.vercel.app/install.ps1 | iex
+irm https://beebright.app/install.ps1 | iex
 ```
 
 Then run:
@@ -29,10 +29,10 @@ It checks the latest verified package and preserves your local progress. An expl
 ## macOS and Linux install
 
 ```sh
-curl -fsSL https://beebright.vercel.app/install.sh | sh
+curl -fsSL https://beebright.app/install.sh | sh
 ```
 
-The installer downloads Astral uv from its official source and installs a private Python 3.15 runtime, requiring no administrator access. It adds `~/.local/bin` to your bash or zsh profile. Open a new terminal and type `beebright`, or immediately use `~/.local/bin/beebright`. The same UI opens in your default browser; keep the terminal open and use Ctrl+C to stop. No pywebview, login or cloud storage is needed. Install `espeak` or `espeak-ng` for Linux offline speech. macOS uses its built-in `say` voice.
+The installer downloads Astral uv from its official source and installs a private Python 3.15 runtime, requiring no administrator access. It adds `~/.local/bin` to bash and zsh interactive and login profiles, including a custom `ZDOTDIR`. A piped installer cannot change the terminal you already have open. Run the following there, or open a new terminal:\n\n```sh\nexport PATH="$HOME/.local/bin:$PATH"\nbeebright\n```\n\nIf an older installation says `command not found`, the same command fixes the current terminal. You can also run `"$HOME/.local/bin/beebright"` directly, or rerun the installer above to repair future terminals without deleting progress. The same UI opens in your default browser; keep the terminal open and use Ctrl+C to stop. No pywebview is needed; login and cloud storage are optional. Install `espeak` or `espeak-ng` for Linux offline speech. macOS uses its built-in `say` voice.
 
 `beebright update`, `beebright web`, `beebright create web`, and all four version flags also work here. Verified updates preserve `~/.local/share/BeeBright/userdata`. Python, uv and the app live under `~/.local/share/BeeBright`; other Python installations stay separate.
 
@@ -78,13 +78,13 @@ Every update to main runs the local tests and builds a new GitHub Release with t
 Older launchers checked the website first. Run the original install command once to replace that launcher without deleting progress:
 
 ```powershell
-irm https://beebright.vercel.app/install.ps1 | iex
+irm https://beebright.app/install.ps1 | iex
 ```
 
 On macOS or Linux:
 
 ```sh
-curl -fsSL https://beebright.vercel.app/install.sh | sh
+curl -fsSL https://beebright.app/install.sh | sh
 ```
 
 After this one-time migration, use `beebright update` normally.
@@ -93,7 +93,7 @@ After this one-time migration, use `beebright update` normally.
 
 BeeBright code and original content retain the website's Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International license. See `LICENSE`. Third-party dictionary adaptations retain their own attribution and license metadata, including CC BY-SA 4.0 for Wiktionary adaptations. Dictionary reference links are in the bundled hint records; original examples are labeled as such.
 
-The old Tkinter window has been replaced by the shared website UI in a desktop WebView2 window. Practice does not connect to Clerk, Render, Neon, Google Fonts, or dictionary APIs. Attribution links open only when clicked. Earlier locally saved sessions are migrated. The old Python 3.13 runtime is not removed automatically; uninstall it through Windows Installed apps if it is no longer needed.
+The old Tkinter window has been replaced by the shared website UI in a desktop WebView2 window. Local-only practice does not connect to Clerk, Render, Neon, Google Fonts, or dictionary APIs. Attribution links open only when clicked. Earlier locally saved sessions are migrated. The old Python 3.13 runtime is not removed automatically; uninstall it through Windows Installed apps if it is no longer needed.
 
 ## Check the installed version
 
@@ -190,3 +190,7 @@ Settings lets you switch between cloud mode and local-only mode without signing 
 Run beebright logout on shared computers. Credentials are excluded from backups. Cloud-mode changes are cached per account and retry while the app is open; wait for pending errors to clear before continuing on another device. If the app is closed while offline, reopen it to retry.
 
 Classrooms are available to every signed-in account. Teachers share their join code; students choose a display name and join voluntarily. Teachers see only members’ reported BeeBright screen, practice mode, level, session answer totals, score, source and last report time. This is self-reported activity, not exam supervision. Local-only activity is not collected. Students can leave, teachers can remove them, rotate codes or delete a classroom.
+
+### Cloud saving switch and browser sign-in
+
+Settings → Account and saving has a Cloud saving switch. Turning it off uses local-only progress; turning it on uses your account’s automatic cloud sync. If signed out, it opens Clerk sign-in in your browser. Complete any verification Clerk requests, then choose **Connect this computer**; there is no BeeBright code to copy. `beebright login` opens the same sign-in link. Sync local progress to cloud remains a separate, confirmed import.

@@ -67,7 +67,9 @@ def terminal(command, args):
         from . import cloud
         if command == 'login':
             value = cloud.login()
-            print('Open https://www.beebright.app/classrooms and approve device code: ' + value.get('code','Already signed in'))
+            if value.get('pending'):
+                print('Finish Clerk sign-in and any verification in your browser, then choose Connect this computer.')
+                print(value['login_url'])
             while cloud.status().get('pending'):
                 time.sleep(2)
             value = cloud.status()

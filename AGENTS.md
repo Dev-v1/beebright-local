@@ -8,4 +8,4 @@
 - Keep update downloads restricted to beebright-local releases. Preserve checksum verification and user progress during upgrades.
 - The main-branch workflow tests and builds the local source, publishes the ZIP plus update-manifest.json, and updates the legacy manifest only after publishing succeeds. Never import or synchronize website source.
 
-- Keep the public install commands at https://beebright.vercel.app/install.ps1 and /install.sh. These install the local-repository updater; new app versions must come from published beebright-local releases.
+- Keep the public install commands at https://beebright.app/install.ps1 and /install.sh. Preserve compatibility with older beebright.vercel.app install links. These install the local-repository updater; new app versions must come from published beebright-local releases.

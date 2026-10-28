@@ -1,3 +1,11 @@
+# BeeBright Local 2.7.7
+
+- Repair command discovery for macOS bash login shells and zsh with a custom ZDOTDIR; configure interactive and login startup files without duplicating PATH entries.
+- Print the exact PATH command needed in the current terminal after a piped install.
+- Use beebright.app in the local README install commands. Existing vercel.app installer links remain compatible.
+- Add an accessible Apple-style Cloud saving switch, clearer account actions and browser Clerk sign-in links without copying BeeBright device codes.
+- Add isolated macOS and Linux shell-installer regression checks before release publishing.
+
 # BeeBright Local 2.7.6
 
 - Prevent overlapping background uploads, local imports and conflict resolution from racing the cloud resume revision.

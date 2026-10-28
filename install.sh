@@ -28,12 +28,25 @@ launcher.write_text('#!/bin/sh\nexec ' + shlex.quote(python) + ' ' + shlex.quote
 launcher.chmod(0o755)
 PY
 "$BeeBin/beebright" update
-case "${SHELL:-}" in
-  */zsh) BeeProfile="$HOME/.zshrc" ;;
-  *) BeeProfile="$HOME/.bashrc" ;;
-esac
+# A piped installer cannot change its parent terminal's PATH. Configure both
+# interactive and login shells, including macOS bash and custom zsh directories.
 BeePathLine='export PATH="$HOME/.local/bin:$PATH" # BeeBright'
-if ! grep -F "$BeePathLine" "$BeeProfile" >/dev/null 2>&1; then
-  printf '\n%s\n' "$BeePathLine" >> "$BeeProfile"
+bee_add_path() {
+  if ! grep -F "$BeePathLine" "$1" >/dev/null 2>&1; then
+    printf '\n%s\n' "$BeePathLine" >> "$1"
+  fi
+}
+bee_add_path "$HOME/.bashrc"
+if [ -f "$HOME/.bash_profile" ]; then
+  BeeBashLogin="$HOME/.bash_profile"
+elif [ -f "$HOME/.bash_login" ]; then
+  BeeBashLogin="$HOME/.bash_login"
+else
+  BeeBashLogin="$HOME/.profile"
 fi
-printf '%s\n' 'Installed BeeBright with its own Python 3.15 runtime.' 'Open a new terminal, then type beebright. Or run ~/.local/bin/beebright now.' 'macOS/Linux practice opens the same offline UI in your browser. Keep the terminal open; Ctrl+C stops it.'
+bee_add_path "$BeeBashLogin"
+BeeZshDir="${ZDOTDIR:-$HOME}"
+mkdir -p "$BeeZshDir"
+bee_add_path "$BeeZshDir/.zprofile"
+bee_add_path "$BeeZshDir/.zshrc"
+printf '%s\n' 'Installed BeeBright with its own Python 3.15 runtime.' 'To use beebright in this terminal, run:' '  export PATH="$HOME/.local/bin:$PATH"' 'Then type beebright. New bash and zsh terminals load the command automatically.' 'You can also run "$HOME/.local/bin/beebright" directly.' 'macOS/Linux practice opens the offline UI in your browser. Keep the terminal open; Ctrl+C stops it.'
