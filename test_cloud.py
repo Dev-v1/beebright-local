@@ -141,3 +141,44 @@ class CloudTests(unittest.TestCase):
         self.assertEqual(cloud.status()['mode'],'local')
         self.assertEqual(engine.read_json(cloud.cache_name(original,'progress')),newer)
         self.assertTrue(engine.read_json(cloud.cache_name(original,'pending'))['progress'])
+
+    def test_overlapping_upload_import_and_resolve_do_not_race_revisions(self):
+        import threading
+        cloud.save_config(self.account)
+        account=cloud.config()
+        session={'words':[{'word':'bee'}],'index':1}
+        cloud.request('/api/progress','PUT',{'session':session})
+        engine.save_json(cloud.cache_name(account,'revision'),'before-upload')
+        entered=threading.Event();release=threading.Event();failures=[]
+        def network(*args,**kwargs):
+            entered.set()
+            if not release.wait(5):raise ValueError('Test upload timed out')
+            return {'revision':'after-upload'}
+        self.remote_mock.side_effect=network
+        def upload():
+            try:cloud.flush(account)
+            except Exception as exc:failures.append(exc)
+        worker=threading.Thread(target=upload);worker.start()
+        try:
+            self.assertTrue(entered.wait(2))
+            for action in (lambda:cloud.flush(account),
+                           lambda:cloud.request('/api/account/sync','PUT'),
+                           lambda:cloud.request('/api/account/resolve','PUT')):
+                with self.assertRaisesRegex(ValueError,'already in progress'):action()
+            self.assertEqual(self.remote_mock.call_count,1)
+            self.assertEqual(engine.read_json(cloud.cache_name(account,'revision')),'before-upload')
+            newer={**session,'index':2}
+            cloud.request('/api/progress','PUT',{'session':newer})
+        finally:
+            release.set();worker.join(3)
+        self.assertFalse(worker.is_alive(),'Sync lock deadlocked the upload')
+        self.assertEqual(failures,[])
+        self.assertEqual(engine.read_json(cloud.cache_name(account,'revision')),'after-upload')
+        self.assertEqual(engine.read_json(cloud.cache_name(account,'progress')),newer)
+        self.assertTrue(engine.read_json(cloud.cache_name(account,'pending'))['progress'])
+        self.remote_mock.side_effect=None
+        self.remote_mock.return_value={'revision':'after-newer'}
+        cloud.flush(account)
+        self.remote_mock.assert_called_with('/api/account/progress','PUT',
+            {'session':newer,'base_revision':'after-upload'},account['token'])
+        self.assertEqual(engine.read_json(cloud.cache_name(account,'pending')),{})

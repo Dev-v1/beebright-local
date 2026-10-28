@@ -1,3 +1,8 @@
+# BeeBright Local 2.7.6
+
+- Prevent overlapping background uploads, local imports and conflict resolution from racing the cloud resume revision.
+- Practice still saves immediately on this computer during a background upload. If sync is busy, manual actions ask you to try again shortly.
+
 # BeeBright Local 2.7.5
 
 - Optional browser-approved account login: beebright login, logout and sync. Cloud saving is on by default after login.
