@@ -30,7 +30,7 @@ class InstallerTests(unittest.TestCase):
             "target=Path(sys.argv[sys.argv.index('-o')+1])\n"
             "if 'https://astral.sh/uv/install.sh' in sys.argv:\n"
             " target.write_text('#!/bin/sh\\nexit 0\\n')\n"
-            " uv=Path(os.environ['UV_UNMANAGED_INSTALL'])/'uv'\n"
+            " uv=Path(os.environ['UV_PYTHON_BIN_DIR'])/'uv'\n"
             " uv.write_text('#!/bin/sh\\nif [ \"$2\" = find ]; then printf \\'%s\\\\n\\' \"$BEE_TEST_PYTHON\"; fi\\n')\n"
             " uv.chmod(0o755)\n"
             "else:\n"
